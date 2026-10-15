@@ -1,0 +1,1975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════════════
+   mo-build-html-prototype · template
+   1 DECK — dark stage, header, browser frame, notes panel
+   2 KOOBIQ TOKENS — semantic subset of @koobiq/design-tokens
+   3 KOOBIQ MINI-COMPONENTS — k-* classes (mimicking @koobiq/components 20)
+   4 NOTES & MARKERS — numbered markers and highlighting
+   5 PROTOTYPE STYLES — styles of this prototype (edit here)
+   Sections 1–4 need no changes.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ===== 1. DECK ===== */
+:root{
+  --deck-bg:#1b1d24;--deck-bg-2:#23262f;--deck-bg-3:#2a2d37;--deck-line:#363a47;
+  --deck-fg:#e6e7eb;--deck-fg-2:#9a9eab;--deck-accent:#4c8dff;--deck-cm:#f5b400;--deck-cm-fg:#1b1d24;--deck-hint:#e040fb;
+  --deck-h:48px;--bar-h:40px;--notes-w:340px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--deck-bg);color:var(--deck-fg);font:14px/20px Inter,-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+.deck{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:8px;height:var(--deck-h);padding:0 20px;background:var(--deck-bg);border-bottom:1px solid var(--deck-line)}
+.deck__title{flex:0 1 auto;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.deck__btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--deck-line);border-radius:8px;background:var(--deck-bg-3);color:var(--deck-fg);font-size:13px;font-weight:500;line-height:1;cursor:pointer;white-space:nowrap}
+.deck__btn:hover{background:#333744}
+.deck__btn.is-on{background:var(--deck-accent);border-color:var(--deck-accent);color:#fff}
+.deck__btn--icon{width:32px;padding:0;justify-content:center}
+.deck__nav{display:flex;gap:4px}
+.deck__nav .deck__btn:disabled{opacity:.4;cursor:default;background:var(--deck-bg-3)}
+.deck__btn .ic{width:16px;height:16px}
+.deck__state{margin-left:auto}
+.deck__state b{font-weight:600}
+/* design variants — segments right after the title; each variant has its own screens, notes and comments */
+.deck__vars{display:flex;flex:0 1 auto;min-width:0;gap:2px;margin-left:8px;padding:2px;border:1px solid var(--deck-line);border-radius:9px;background:var(--deck-bg-2)}
+.deck__vars[hidden]{display:none}
+.deck__var{display:inline-flex;align-items:center;gap:6px;min-width:0;height:26px;padding:0 10px 0 4px;border:0;border-radius:7px;background:transparent;font-size:13px;font-weight:500;color:var(--deck-fg-2);cursor:pointer;white-space:nowrap}
+.deck__var:hover{background:var(--deck-bg-3);color:var(--deck-fg)}
+.deck__var.is-current{background:var(--deck-accent);color:#fff}
+.deck__var-k{flex:none;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:5px;background:var(--deck-bg-3);color:var(--deck-fg);font-size:11px;font-weight:700}
+.deck__var.is-current .deck__var-k{background:rgba(255,255,255,.22);color:#fff}
+.deck__var-t{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.notes__var{padding:10px 14px;border-left:3px solid var(--deck-accent);border-radius:4px;background:var(--deck-bg-2);font-size:13px;line-height:18px;color:#c3c6cf}
+.notes__var b{display:block;margin-bottom:2px;color:var(--deck-fg);font-weight:600}
+.deck__state .sep{color:var(--deck-fg-2);margin:0 2px}
+.deck__pop{position:absolute;top:calc(var(--deck-h) - 6px);right:20px;z-index:60;min-width:320px;max-width:calc(100vw - 40px);padding:12px;border:1px solid var(--deck-line);border-radius:10px;background:var(--deck-bg-2);box-shadow:0 12px 32px rgba(0,0,0,.45)}
+.deck__pop[hidden]{display:none}
+.deck__cols{display:flex;gap:16px;overflow:auto}
+.deck__col{min-width:150px}
+.deck__col-title{margin:0 0 6px;padding:0 8px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--deck-fg-2)}
+.deck__opt{display:block;width:100%;padding:6px 8px;border:0;border-radius:6px;background:transparent;text-align:left;font-size:13px;cursor:pointer}
+.deck__opt:hover{background:var(--deck-bg-3)}
+.deck__opt.is-current{background:var(--deck-accent);color:#fff}
+.deck__sw{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:12px;padding-top:12px;border-top:1px solid var(--deck-line)}
+.deck__sw-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--deck-fg-2)}
+.deck__seg{display:inline-flex;padding:2px;border-radius:6px;background:var(--deck-bg)}
+.deck__seg button{padding:2px 8px;border:0;border-radius:4px;background:transparent;font-size:12px;color:var(--deck-fg);cursor:pointer}
+.deck__seg button.is-current{background:var(--deck-bg-3)}
+/* settings (sliders icon) — its own popover at the right edge of the header */
+.deck__opts{width:340px;min-width:0}
+.deck__chk{display:flex;align-items:flex-start;gap:10px;padding:4px;font-size:13px;line-height:18px;cursor:pointer}
+.deck__chk input{flex:none;width:16px;height:16px;margin:1px 0 0;accent-color:var(--deck-accent);cursor:pointer}
+.deck__chk-sub{display:block;margin-top:4px;font-size:12px;line-height:16px;color:var(--deck-fg-2)}
+.deck__chk-sub kbd{padding:0 5px;border:1px solid var(--deck-line);border-radius:4px;background:var(--deck-bg-3);font:11px/16px Inter,sans-serif;color:var(--deck-fg)}
+.stage{display:flex;align-items:flex-start;gap:16px;padding:16px 20px 32px}
+/* the browser frame follows the prototype theme: the runtime sets .is-dark on .browser */
+.browser{--br-line:hsl(229 15% 84%);--br-bar:hsl(229 15% 94%);--br-url:#fff;--br-url-ring:hsl(229 15% 86%);--br-url-fg:hsl(229 15% 40%);--br-body:#fff;color-scheme:light;flex:1;min-width:0;border:1px solid var(--br-line);border-radius:10px;background:var(--br-body);box-shadow:0 20px 60px rgba(0,0,0,.5);overflow:hidden;contain:paint}  /* contain: the prototype's z-index and position:fixed stay inside the frame — header, popover and notes are always on top */
+.browser.is-dark{--br-line:var(--deck-line);--br-bar:var(--deck-bg-3);--br-url:var(--deck-bg);--br-url-ring:transparent;--br-url-fg:var(--deck-fg-2);--br-body:hsl(229 15% 12%);color-scheme:dark}
+.browser__bar{display:flex;align-items:center;gap:8px;height:var(--bar-h);padding:0 12px;background:var(--br-bar);border-bottom:1px solid var(--br-line)}
+.browser__dot{width:12px;height:12px;border-radius:50%;background:#ff5f57}
+.browser__dot:nth-child(2){background:#febc2e}
+.browser__dot:nth-child(3){background:#28c840}
+.browser__url{flex:1;display:flex;align-items:center;height:26px;margin-left:8px;padding:0 10px;border-radius:6px;background:var(--br-url);box-shadow:inset 0 0 0 1px var(--br-url-ring);font:12px/16px 'JetBrains Mono',Menlo,Consolas,monospace;color:var(--br-url-fg);white-space:nowrap;overflow:hidden}
+.browser__body{overflow:auto}
+.app{position:relative;min-width:960px;height:max(700px,calc(100vh - var(--deck-h) - var(--bar-h) - 48px));overflow:hidden;display:flex;flex-direction:column}
+.app-view{flex:1;min-height:0;display:flex;flex-direction:column}
+/* notes panel — always OUTSIDE .app */
+.notes{width:var(--notes-w);flex:none;position:sticky;top:calc(var(--deck-h) + 16px);max-height:calc(100vh - var(--deck-h) - 32px);overflow:auto;display:flex;flex-direction:column;gap:8px}
+body:not(.notes-on) .notes{display:none}
+.note{padding:12px 14px;border:1px solid var(--deck-line);border-radius:10px;background:var(--deck-bg-2);cursor:pointer;transition:border-color .15s,background .15s}
+.note:hover{border-color:#4a4f5e}
+.note.is-hot,.note.is-pinned{border-color:var(--deck-accent);background:#242b3d}
+.note__head{display:flex;align-items:flex-start;gap:8px}
+.note__n{flex:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--deck-accent);color:#fff;font-size:12px;font-weight:700}
+.note.is-away .note__n{background:var(--deck-bg-3);color:var(--deck-fg-2)}
+.note__title{margin:0;font-size:13px;font-weight:600;line-height:20px}
+.note__text{margin:6px 0 0 28px;font-size:13px;line-height:18px;color:#c3c6cf}
+.note__text p{margin:0 0 6px}
+.note__text p:last-child{margin:0}
+.note__text b{color:var(--deck-fg);font-weight:600}
+.note__text code{font:12px/16px 'JetBrains Mono',Menlo,monospace;background:var(--deck-bg-3);padding:0 4px;border-radius:4px}
+.note__where{display:inline-flex;align-items:center;gap:4px;margin:8px 0 0 28px;padding:2px 8px;border-radius:6px;background:var(--deck-bg-3);font-size:11px;color:var(--deck-fg-2)}
+.note__where .ic{width:12px;height:12px}
+.note:hover .note__where{color:var(--deck-fg)}
+.notes__empty{padding:12px 14px;border:1px dashed var(--deck-line);border-radius:10px;font-size:13px;color:var(--deck-fg-2)}
+/* reviewer comments — in the same column as the notes (only one of the two is visible) */
+.deck__count{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--deck-bg);font-size:11px;font-weight:600;line-height:18px;text-align:center}
+.deck__btn.is-on .deck__count{background:rgba(255,255,255,.22)}
+.cmts{width:var(--notes-w);flex:none;position:sticky;top:calc(var(--deck-h) + 16px);max-height:calc(100vh - var(--deck-h) - 32px);overflow:auto;display:flex;flex-direction:column;gap:8px}
+body:not(.cmts-on) .cmts{display:none}
+.cmts__bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:6px;padding-bottom:4px;background:var(--deck-bg)}
+.cmts__bar .deck__btn{height:28px;padding:0 10px;font-size:12px}
+.cmts__bar .deck__btn--icon{width:28px;padding:0}
+.cmts__bar .deck__btn:disabled{opacity:.45;cursor:default}
+.cmts__sp{flex:1}
+.cmts__bar .is-danger:not(:disabled):hover{background:#4a2326;border-color:#7a3036;color:#ffb4ae}
+.cmts__confirm{flex:1;font-size:12px;color:var(--deck-fg-2)}
+.cmts__confirm b{color:var(--deck-fg);font-weight:600}
+.cmts__sep{margin:8px 0 0;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--deck-fg-2)}
+.cmts__empty{padding:12px 14px;border:1px dashed var(--deck-line);border-radius:10px;font-size:13px;line-height:18px;color:var(--deck-fg-2)}
+.cmt{position:relative;padding:10px 12px;border:1px solid var(--deck-line);border-radius:10px;background:var(--deck-bg-2);cursor:pointer;transition:border-color .15s,background .15s}
+.cmt:hover{border-color:#4a4f5e}
+.cmt.is-hot{border-color:var(--deck-cm);background:#2d2a1f}
+.cmt.is-editing{cursor:default}
+.cmt__head{display:flex;align-items:flex-start;gap:8px}
+.cmt__n{flex:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:10px 10px 10px 2px;background:var(--deck-cm);color:var(--deck-cm-fg);font-size:12px;font-weight:700}
+.cmt.is-away .cmt__n{background:var(--deck-bg-3);color:var(--deck-fg-2)}
+.cmt__text{flex:1;min-width:0;font-size:13px;line-height:18px;color:#d5d7de;white-space:pre-wrap;overflow-wrap:anywhere}
+.cmt__body{flex:1;min-width:0}
+.cmt__acts{position:absolute;top:6px;right:6px;display:none;gap:2px;padding:2px;border-radius:8px;background:var(--deck-bg-2)}
+.cmt:hover .cmt__acts{display:flex}
+.cmt.is-editing .cmt__acts{display:none}
+.cmt__act{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;padding:0;border:0;border-radius:6px;background:transparent;color:var(--deck-fg-2);cursor:pointer}
+.cmt__act:hover{background:var(--deck-bg-3);color:var(--deck-fg)}
+.cmt__act .ic{width:14px;height:14px}
+.cmt__where{display:inline-flex;align-items:center;gap:4px;margin:8px 0 0 28px;padding:2px 8px;border-radius:6px;background:var(--deck-bg-3);font-size:11px;color:var(--deck-fg-2)}
+.cmt__where .ic{width:12px;height:12px}
+.cmt-edit textarea{display:block;width:100%;min-height:62px;padding:8px 10px;border:1px solid var(--deck-line);border-radius:8px;background:var(--deck-bg);color:var(--deck-fg);font:13px/18px Inter,sans-serif;resize:none;overflow-y:hidden;outline:0}
+.cmt-edit textarea:focus{border-color:var(--deck-cm)}
+.cmt-edit__keys{margin:4px 0 8px;font-size:11px;line-height:16px;color:var(--deck-fg-2)}
+.cmt-edit__row{display:flex;align-items:center;gap:6px}
+.cmt-edit__row .deck__btn{height:28px;padding:0 12px;font-size:12px}
+.cmt-edit__ok{background:var(--deck-cm);border-color:var(--deck-cm);color:var(--deck-cm-fg)}
+.cmt-edit__ok:hover{background:#ffc52e}
+.cmt-edit__ok:disabled{opacity:.5;cursor:default}
+.cm-hint{position:fixed;left:50%;top:calc(var(--deck-h) + 10px);z-index:70;transform:translateX(-50%);padding:6px 12px;border-radius:8px;background:var(--deck-cm);color:var(--deck-cm-fg);font-size:12px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.cm-hint[hidden]{display:none}
+.cm-hint kbd,.cmts__empty kbd{padding:0 5px;border:1px solid var(--deck-line);border-radius:4px;background:var(--deck-bg-3);font:11px/16px Inter,sans-serif;color:var(--deck-fg)}
+.cm-hint kbd{border-color:rgba(0,0,0,.2);background:rgba(255,255,255,.4);color:var(--deck-cm-fg)}
+/* ===== 1b. SCREEN MAP — cards are states (columns by the number of transitions from the entry), arrows are transitions; drawn instead of the stage, in the header's style ===== */
+.deck__btn[hidden]{display:none}
+.map{display:none;position:relative;height:calc(100vh - var(--deck-h));overflow:hidden;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+body.map-on{overflow:hidden}
+.map.is-panning,.map.is-panning *{cursor:grabbing}
+body.map-on .map{display:block}
+body.map-on .stage{display:none}
+.map__canvas{position:absolute;top:0;left:0;display:flex;align-items:flex-start;gap:120px;width:max-content;padding:32px 96px 32px 32px;transform-origin:0 0}
+.map__zoom{position:absolute;left:20px;bottom:20px;z-index:2;display:flex;align-items:center;gap:2px;padding:4px;border:1px solid var(--deck-line);border-radius:10px;background:var(--deck-bg-2);box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:default}
+.map__zoom .deck__btn{height:28px;border-color:transparent;background:transparent}
+.map__zoom .deck__btn:hover{background:var(--deck-bg-3)}
+.map__zoom .deck__btn--icon{width:28px}
+.map__zoom-val{min-width:56px;justify-content:center;font-variant-numeric:tabular-nums}
+.map__edges{position:absolute;top:0;left:0;z-index:0;overflow:visible;pointer-events:none}
+.map__col{position:relative;z-index:1;display:flex;flex-direction:column;gap:20px;width:264px}
+.map__step{font-weight:400;color:var(--deck-fg-2)}
+.map__node{display:flex;flex-direction:column;gap:8px;padding:8px;border:1px solid var(--deck-line);border-radius:10px;background:var(--deck-bg-2);transition:border-color .15s,opacity .15s}
+.map__node.is-current{border-color:var(--deck-accent);box-shadow:0 0 0 1px var(--deck-accent)}
+.map__node.is-hot{border-color:var(--deck-accent)}
+.map.is-focus .map__node:not(.is-hot){opacity:.55}
+.map__head{display:flex;align-items:center;gap:4px;min-height:20px;padding:0 2px}
+.map__title{flex:1;min-width:0;font-size:13px;line-height:20px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.map__node.is-current .map__title::before{content:'';display:inline-block;width:6px;height:6px;margin:0 6px 2px 0;border-radius:50%;background:var(--deck-accent)}
+.map__note{flex:none;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;padding:0;border:0;border-radius:50%;background:var(--deck-accent);color:#fff;font-size:11px;font-weight:700;cursor:pointer}
+.map__cmts{flex:none;display:inline-flex;align-items:center;gap:3px;height:18px;padding:0 2px;border:0;border-radius:4px;background:transparent;color:var(--deck-cm);font-size:12px;font-weight:700;cursor:pointer}
+.map__cmts:hover{background:var(--deck-bg-3)}
+.map__cmts .ic{width:14px;height:14px}
+.map__shot{position:relative;display:block;width:100%;aspect-ratio:16/10;overflow:hidden;border:1px solid var(--deck-line);border-radius:6px;cursor:pointer;transition:border-color .15s}
+.map__shot:hover{border-color:var(--deck-accent)}
+.map__shot img{position:absolute;top:0;left:0;display:block;width:100%;height:100%}
+.map__frame{min-width:0}  /* .map__frame — root of the thumbnail snapshot (see shotSrc); its rules go into the image along with the page CSS */
+.map__frame .marker{display:none}
+.map__frame .changed{outline:0}
+.map__exits{display:flex;flex-direction:column;gap:2px;margin:0;padding:0;list-style:none}
+.map__exit{display:flex;align-items:center;gap:6px;height:24px;padding:0 6px;border-radius:6px;font-size:12px;line-height:16px;color:var(--deck-fg);cursor:pointer}
+.map__exit:hover,.map__exit.is-hot{background:var(--deck-bg-3)}
+.map__exit .ic{flex:none;width:12px;height:12px;color:var(--deck-fg-2)}
+.map__exit-label{flex:0 1 auto;max-width:60%;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.map__exit-to{flex:1 1 0;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--deck-fg-2)}
+/* arrows: the dot and the head are geometry, transparency is in the color. SVG markers and opacity on hundreds of arrows make the map sluggish */
+.map__edge{--c:color-mix(in srgb,var(--deck-fg-2) 60%,transparent)}
+.map.is-focus .map__edge{--c:color-mix(in srgb,var(--deck-fg-2) 12%,transparent)}
+.map .map__edge.is-hot{--c:var(--deck-accent)}
+.map__line{fill:none;stroke:var(--c);stroke-width:1.5}
+.map__cap{fill:var(--c)}
+
+
+/* ===== 2. KOOBIQ TOKENS (semantic subset of @koobiq/design-tokens 3.20) ===== */
+:root{
+  --kbq-size-3xs:2px;--kbq-size-xxs:4px;--kbq-size-xs:6px;--kbq-size-s:8px;--kbq-size-m:12px;--kbq-size-l:16px;--kbq-size-xl:20px;--kbq-size-xxl:24px;--kbq-size-3xl:32px;--kbq-size-4xl:40px;--kbq-size-5xl:48px;--kbq-size-6xl:56px;--kbq-size-7xl:64px;
+  --kbq-size-border-width:1px;--kbq-size-border-radius:8px;
+  --kbq-font-family-base:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;
+  --kbq-font-family-mono:'JetBrains Mono','Roboto Mono',Consolas,Menlo,Monaco,monospace;
+}
+.kbq-light{
+  color-scheme:light;
+  --kbq-background-bg:#fff;--kbq-background-bg-secondary:hsl(229 15% 97%);--kbq-background-bg-tertiary:hsl(229 15% 95%);--kbq-background-card:#fff;--kbq-background-night:hsl(229 15% 25%);--kbq-background-overlay:hsl(229 15% 20% / .32);
+  --kbq-background-theme:hsl(216 100% 50%);--kbq-background-theme-fade:hsl(216 100% 88%);--kbq-background-theme-less:hsl(216 100% 94%);
+  --kbq-background-contrast:hsl(229 15% 25%);--kbq-background-contrast-fade:hsl(229 15% 90%);--kbq-background-contrast-less:hsl(229 15% 96%);
+  --kbq-background-error:hsl(7 97% 60%);--kbq-background-error-fade:hsl(7 97% 89%);--kbq-background-error-less:hsl(7 97% 94%);
+  --kbq-background-success:hsl(104 64% 45%);--kbq-background-success-fade:hsl(104 64% 80%);--kbq-background-success-less:hsl(104 64% 89%);
+  --kbq-background-warning:hsl(38 100% 50%);--kbq-background-warning-fade:hsl(38 100% 85%);--kbq-background-warning-less:hsl(38 100% 90%);
+  --kbq-foreground-contrast:hsl(229 15% 15%);--kbq-foreground-contrast-secondary:hsl(229 15% 50%);--kbq-foreground-contrast-tertiary:hsl(229 15% 60%);--kbq-foreground-on-contrast:#fff;
+  --kbq-foreground-theme:hsl(216 100% 50%);--kbq-foreground-error:hsl(7 97% 40%);--kbq-foreground-success:hsl(104 64% 30%);--kbq-foreground-warning:hsl(38 100% 33%);
+  --kbq-icon-contrast:hsl(229 15% 15%);--kbq-icon-contrast-fade:hsl(229 15% 60%);--kbq-icon-theme:hsl(216 100% 50%);--kbq-icon-error:hsl(7 97% 45%);--kbq-icon-success:hsl(104 64% 40%);--kbq-icon-warning:hsl(38 100% 42%);
+  --kbq-line-contrast-fade:hsl(229 15% 80%);--kbq-line-contrast-less:hsl(229 15% 6% / .12);--kbq-line-theme-fade:hsl(216 100% 65%);--kbq-line-error:hsl(7 97% 45%);
+  --kbq-states-background-transparent-hover:hsl(229 15% 50% / .08);--kbq-states-background-transparent-active:hsl(229 15% 50% / .16);
+  --kbq-states-background-theme-hover:hsl(216 100% 45%);--kbq-states-background-contrast-hover:hsl(229 15% 20%);--kbq-states-background-contrast-fade-hover:hsl(229 15% 88%);
+  --kbq-states-background-disabled:rgb(0 0 0 / .05);--kbq-states-foreground-disabled:hsl(229 15% 60% / .6);--kbq-states-line-focus:hsl(216 100% 50%);
+  --kbq-shadow-card:0 0 0 1px hsl(229 15% 6% / .03),0 1px 6px 0 hsl(229 15% 6% / .06),0 1px 6px 0 hsl(229 15% 6% / .12);
+  --kbq-shadow-popup:0 0 0 1px hsl(229 15% 6% / .03),0 2px 8px hsl(229 15% 6% / .06),0 3px 8px hsl(229 15% 6% / .12);
+  --kbq-shadow-overlay:0 0 0 1px hsl(229 15% 6% / .03),0 3px 16px hsl(229 15% 6% / .06),0 4px 32px hsl(229 15% 6% / .12);
+}
+.kbq-dark{
+  color-scheme:dark;
+  --kbq-background-bg:hsl(229 15% 12%);--kbq-background-bg-secondary:hsl(229 15% 16%);--kbq-background-bg-tertiary:hsl(229 15% 14%);--kbq-background-card:hsl(229 15% 15%);--kbq-background-night:hsl(229 15% 22%);--kbq-background-overlay:hsl(229 15% 6% / .64);
+  --kbq-background-theme:hsl(216 100% 50%);--kbq-background-theme-fade:hsl(216 100% 24%);--kbq-background-theme-less:hsl(216 100% 15%);
+  --kbq-background-contrast:hsl(229 15% 90%);--kbq-background-contrast-fade:hsl(229 15% 23%);--kbq-background-contrast-less:hsl(229 15% 17%);
+  --kbq-background-error:hsl(7 97% 41%);--kbq-background-error-fade:hsl(7 97% 20%);--kbq-background-error-less:hsl(7 97% 13%);
+  --kbq-background-success:hsl(104 64% 40%);--kbq-background-success-fade:hsl(104 64% 15%);--kbq-background-success-less:hsl(104 64% 9%);
+  --kbq-background-warning:hsl(38 100% 39%);--kbq-background-warning-fade:hsl(38 100% 15%);--kbq-background-warning-less:hsl(38 100% 9%);
+  --kbq-foreground-contrast:hsl(229 15% 80%);--kbq-foreground-contrast-secondary:hsl(229 15% 60%);--kbq-foreground-contrast-tertiary:hsl(229 15% 45%);--kbq-foreground-on-contrast:hsl(229 15% 15%);
+  --kbq-foreground-theme:hsl(216 100% 65%);--kbq-foreground-error:hsl(7 97% 60%);--kbq-foreground-success:hsl(104 64% 45%);--kbq-foreground-warning:hsl(38 100% 60%);
+  --kbq-icon-contrast:hsl(229 15% 80%);--kbq-icon-contrast-fade:hsl(229 15% 45%);--kbq-icon-theme:hsl(216 100% 65%);--kbq-icon-error:hsl(7 97% 60%);--kbq-icon-success:hsl(104 64% 45%);--kbq-icon-warning:hsl(38 100% 60%);
+  --kbq-line-contrast-fade:hsl(229 15% 30%);--kbq-line-contrast-less:hsl(229 15% 22%);--kbq-line-theme-fade:hsl(216 100% 30%);--kbq-line-error:hsl(7 97% 35%);
+  --kbq-states-background-transparent-hover:hsl(229 15% 50% / .16);--kbq-states-background-transparent-active:hsl(229 100% 85% / .15);
+  --kbq-states-background-theme-hover:hsl(216 100% 55%);--kbq-states-background-contrast-hover:hsl(229 15% 85%);--kbq-states-background-contrast-fade-hover:hsl(229 15% 27%);
+  --kbq-states-background-disabled:hsl(229 15% 50% / .16);--kbq-states-foreground-disabled:hsl(229 15% 65% / .6);--kbq-states-line-focus:hsl(216 100% 65%);
+  --kbq-shadow-card:0 0 0 1px hsl(229 100% 85% / .15);
+  --kbq-shadow-popup:0 0 0 1px hsl(229 100% 85% / .15),0 4px 16px rgb(0 0 0 / .4);
+  --kbq-shadow-overlay:0 0 0 1px hsl(229 100% 85% / .15),0 8px 32px rgb(0 0 0 / .5);
+}
+/* Koobiq typography */
+.app{font:400 14px/20px var(--kbq-font-family-base);letter-spacing:-0.006em;color:var(--kbq-foreground-contrast);background:var(--kbq-background-bg);font-feature-settings:"calt","kern","liga","ss01","ss04","zero"}
+.app h1,.app h2,.app h3,.app h4,.app p,.app ul,.app ol{margin:0}
+.app ul,.app ol{padding-left:20px}
+.app ::placeholder{color:var(--kbq-foreground-contrast-tertiary)}
+:where(.app) a{color:var(--kbq-foreground-theme)}
+.app button{font:inherit}
+.kbq-text-compact{font-size:12px;line-height:16px;letter-spacing:0}
+.kbq-text-normal{font-size:14px;line-height:20px;letter-spacing:-0.006em}
+.kbq-text-big{font-size:16px;line-height:24px;letter-spacing:-0.011em}
+.kbq-subheading{font-size:18px;line-height:26px;font-weight:600;letter-spacing:-0.014em}
+.kbq-title{font-size:20px;line-height:28px;font-weight:700;letter-spacing:-0.017em}
+.kbq-headline{font-size:28px;line-height:32px;font-weight:700;letter-spacing:-0.02em}
+.kbq-caps-compact{font-size:12px;line-height:16px;font-weight:500;letter-spacing:1px;text-transform:uppercase}
+.kbq-caps-normal{font-size:14px;line-height:20px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+.kbq-mono-compact{font-family:var(--kbq-font-family-mono);font-size:12px;line-height:16px;letter-spacing:0}
+.kbq-mono-normal{font-family:var(--kbq-font-family-mono);font-size:14px;line-height:20px;letter-spacing:0}
+.kbq-medium{font-weight:500}.kbq-semibold{font-weight:600}
+.kbq-secondary{color:var(--kbq-foreground-contrast-secondary)}.kbq-tertiary{color:var(--kbq-foreground-contrast-tertiary)}
+.kbq-error{color:var(--kbq-foreground-error)}.kbq-success{color:var(--kbq-foreground-success)}.kbq-warning{color:var(--kbq-foreground-warning)}.kbq-theme{color:var(--kbq-foreground-theme)}
+
+/* ===== 3. KOOBIQ MINI-COMPONENTS (k-*) ===== */
+.ic{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
+.ic--24{width:24px;height:24px;stroke-width:1.5}.ic--32{width:32px;height:32px;stroke-width:1.5}.ic--40{width:40px;height:40px;stroke-width:1.25}
+.ic--fade{color:var(--kbq-icon-contrast-fade)}.ic--theme{color:var(--kbq-icon-theme)}.ic--error{color:var(--kbq-icon-error)}.ic--success{color:var(--kbq-icon-success)}.ic--warning{color:var(--kbq-icon-warning)}
+/* button */
+.k-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 12px;border:1px solid transparent;border-radius:8px;background:var(--kbq-background-contrast-fade);color:var(--kbq-foreground-contrast);font:inherit;font-weight:500;white-space:nowrap;cursor:pointer;user-select:none;text-decoration:none}
+.k-btn:hover{background:var(--kbq-states-background-contrast-fade-hover)}
+.k-btn .ic{color:var(--kbq-icon-contrast)}
+.k-btn--primary{background:var(--kbq-background-theme);color:#fff}.k-btn--primary:hover{background:var(--kbq-states-background-theme-hover)}.k-btn--primary .ic{color:#fff}
+.k-btn--contrast{background:var(--kbq-background-contrast);color:var(--kbq-foreground-on-contrast)}.k-btn--contrast:hover{background:var(--kbq-states-background-contrast-hover)}.k-btn--contrast .ic{color:var(--kbq-foreground-on-contrast)}
+.k-btn--outline{background:transparent;border-color:var(--kbq-line-contrast-fade)}.k-btn--outline:hover{background:var(--kbq-states-background-transparent-hover)}
+.k-btn--outline-theme{background:transparent;border-color:var(--kbq-line-theme-fade);color:var(--kbq-foreground-theme)}.k-btn--outline-theme .ic{color:var(--kbq-icon-theme)}.k-btn--outline-theme:hover{background:var(--kbq-background-theme-less)}
+.k-btn--transparent{background:transparent}.k-btn--transparent:hover{background:var(--kbq-states-background-transparent-hover)}
+.k-btn--theme-fade{background:var(--kbq-background-theme-fade);color:var(--kbq-foreground-theme)}.k-btn--theme-fade .ic{color:var(--kbq-icon-theme)}
+.k-btn--error{background:var(--kbq-background-error);color:#fff}.k-btn--error .ic{color:#fff}
+.k-btn--error-fade{background:var(--kbq-background-error-fade);color:var(--kbq-foreground-error)}.k-btn--error-fade .ic{color:var(--kbq-icon-error)}
+.k-btn--compact{height:24px;padding:0 8px;font-size:12px;line-height:16px;border-radius:6px}
+.k-btn[disabled],.k-btn.is-disabled{background:var(--kbq-states-background-disabled);color:var(--kbq-states-foreground-disabled);border-color:transparent;pointer-events:none}
+.k-btn[disabled] .ic{color:var(--kbq-states-foreground-disabled)}
+.k-btn.is-pressed{background:var(--kbq-states-background-transparent-active)}
+.k-btn .k-btn__caret{margin-right:-4px;color:var(--kbq-icon-contrast-fade)}
+.k-btn--primary .k-btn__caret{color:#fff}
+.k-split{display:inline-flex}
+.k-split .k-btn:first-child{border-radius:8px 0 0 8px}
+.k-split .k-btn:last-child{border-radius:0 8px 8px 0;padding:0 6px;margin-left:1px}
+/* icon button */
+.k-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--kbq-icon-contrast-fade);cursor:pointer;flex:none}
+.k-icon-btn:hover{background:var(--kbq-states-background-transparent-hover);color:var(--kbq-icon-contrast)}
+.k-icon-btn.is-active{background:var(--kbq-states-background-transparent-active);color:var(--kbq-icon-contrast)}
+.k-icon-btn--compact{width:24px;height:24px;border-radius:6px}
+.k-icon-btn--contrast{color:var(--kbq-icon-contrast)}
+.k-icon-btn--fade{background:var(--kbq-background-contrast-fade);color:var(--kbq-icon-contrast)}
+/* form field, input, textarea */
+.k-field{display:flex;flex-direction:column;gap:4px}
+.k-field--row{flex-direction:row;align-items:center;gap:12px}
+.k-label{color:var(--kbq-foreground-contrast-secondary)}
+.k-label .req{color:var(--kbq-foreground-error)}
+.k-input{display:block;width:100%;height:32px;padding:0 12px;border:1px solid var(--kbq-line-contrast-fade);border-radius:8px;background:var(--kbq-background-bg);color:var(--kbq-foreground-contrast);font:inherit;outline:0}
+textarea.k-input{height:auto;min-height:80px;padding:6px 12px;resize:vertical}
+.k-input:hover{border-color:var(--kbq-icon-contrast-fade)}
+.k-input:focus,.k-input.is-focus{border-color:var(--kbq-states-line-focus);box-shadow:0 0 0 1px var(--kbq-states-line-focus)}
+.k-input.is-error{border-color:var(--kbq-line-error);background:var(--kbq-background-error-less)}
+.k-input[disabled],.k-input.is-disabled{background:var(--kbq-states-background-disabled);color:var(--kbq-states-foreground-disabled)}
+.k-input[readonly]{background:var(--kbq-background-bg-secondary)}
+.k-input--mono{font-family:var(--kbq-font-family-mono);letter-spacing:0}
+.k-input-wrap{position:relative;display:flex;align-items:center}
+.k-input-wrap>.ic{position:absolute;left:12px;color:var(--kbq-icon-contrast-fade);pointer-events:none}
+.k-input-wrap>.ic+.k-input{padding-left:36px}
+.k-input-wrap>.k-icon-btn{position:absolute;right:4px}
+.k-input-wrap:has(>.k-icon-btn)>.k-input{padding-right:36px}
+.k-hint{font-size:12px;line-height:16px;color:var(--kbq-foreground-contrast-secondary)}
+.k-hint--error{color:var(--kbq-foreground-error)}
+/* select — a trigger button; the list is a .k-dropdown inside .k-anchor */
+.k-select{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;height:32px;padding:0 8px 0 12px;border:1px solid var(--kbq-line-contrast-fade);border-radius:8px;background:var(--kbq-background-bg);color:var(--kbq-foreground-contrast);font:inherit;text-align:left;cursor:pointer}
+.k-select:hover{border-color:var(--kbq-icon-contrast-fade)}
+.k-select.is-open,.k-select:focus{border-color:var(--kbq-states-line-focus);box-shadow:0 0 0 1px var(--kbq-states-line-focus);outline:0}
+.k-select.is-error{border-color:var(--kbq-line-error);background:var(--kbq-background-error-less)}
+.k-select>.ic{color:var(--kbq-icon-contrast-fade)}
+.k-select__value{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.k-select__value.is-placeholder{color:var(--kbq-foreground-contrast-tertiary)}
+.k-select--tags{height:auto;min-height:32px;padding:3px 8px 3px 4px;flex-wrap:wrap;justify-content:flex-start}
+.k-select--tags>.ic{margin-left:auto}
+.k-select--tags .k-select__value{flex:0 1 auto;padding-left:4px}
+.k-select[disabled]{background:var(--kbq-states-background-disabled);color:var(--kbq-states-foreground-disabled);pointer-events:none}
+/* checkbox / radio / toggle */
+.k-checkbox,.k-radio,.k-toggle{display:inline-flex;align-items:flex-start;gap:8px;cursor:pointer;user-select:none}
+.k-checkbox__box{flex:none;width:16px;height:16px;margin-top:2px;border:1px solid var(--kbq-line-contrast-fade);border-radius:4px;background:var(--kbq-background-bg)}
+.k-checkbox:hover .k-checkbox__box{border-color:var(--kbq-icon-contrast-fade)}
+.k-checkbox.is-checked .k-checkbox__box,.k-checkbox.is-indeterminate .k-checkbox__box{border-color:var(--kbq-background-theme);background:var(--kbq-background-theme) center/12px no-repeat}
+.k-checkbox.is-checked .k-checkbox__box{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E")}
+.k-checkbox.is-indeterminate .k-checkbox__box{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'%3E%3Cline x1='6' y1='12' x2='18' y2='12'/%3E%3C/svg%3E")}
+.k-radio__dot{flex:none;width:16px;height:16px;margin-top:2px;border:1px solid var(--kbq-line-contrast-fade);border-radius:50%;background:var(--kbq-background-bg)}
+.k-radio:hover .k-radio__dot{border-color:var(--kbq-icon-contrast-fade)}
+.k-radio.is-checked .k-radio__dot{border-color:var(--kbq-background-theme);background:#fff;box-shadow:inset 0 0 0 4px var(--kbq-background-theme)}
+.k-toggle__track{flex:none;position:relative;width:28px;height:16px;margin-top:2px;border:1px solid var(--kbq-line-contrast-less);border-radius:8px;background:var(--kbq-background-bg);transition:background .15s}
+.k-toggle__track::after{content:"";position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:var(--kbq-icon-contrast);transition:left .15s}
+.k-toggle.is-checked .k-toggle__track{background:var(--kbq-background-theme);border-color:var(--kbq-background-theme)}
+.k-toggle.is-checked .k-toggle__track::after{left:14px;background:#fff}
+.k-checkbox.is-disabled,.k-radio.is-disabled,.k-toggle.is-disabled{color:var(--kbq-states-foreground-disabled);pointer-events:none}
+.k-checkbox.is-disabled .k-checkbox__box,.k-radio.is-disabled .k-radio__dot{background:var(--kbq-states-background-disabled)}
+.k-check-group{display:flex;flex-direction:column;gap:8px}
+.k-check-group--row{flex-direction:row;gap:16px;flex-wrap:wrap}
+.k-check-sub{display:block;font-size:12px;line-height:16px;color:var(--kbq-foreground-contrast-secondary)}
+/* badge, tag */
+.k-badge{display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 8px;border-radius:4px;background:var(--kbq-background-contrast-fade);color:var(--kbq-foreground-contrast);font-size:14px;line-height:20px;font-weight:500;white-space:nowrap;vertical-align:middle}
+.k-badge--compact{height:16px;padding:0 4px;font-size:12px;line-height:16px}
+.k-badge--theme{background:var(--kbq-background-theme-fade);color:var(--kbq-foreground-theme)}
+.k-badge--success{background:var(--kbq-background-success-fade);color:var(--kbq-foreground-success)}
+.k-badge--warning{background:var(--kbq-background-warning-fade);color:var(--kbq-foreground-warning)}
+.k-badge--error{background:var(--kbq-background-error-fade);color:var(--kbq-foreground-error)}
+.k-badge--solid{background:var(--kbq-background-contrast);color:var(--kbq-foreground-on-contrast)}
+.k-badge--solid.k-badge--theme{background:var(--kbq-background-theme);color:#fff}
+.k-badge--solid.k-badge--success{background:var(--kbq-background-success);color:#fff}
+.k-badge--solid.k-badge--warning{background:var(--kbq-background-warning);color:hsl(229 15% 15%)}
+.k-badge--solid.k-badge--error{background:var(--kbq-background-error);color:#fff}
+.k-badge--outline{background:transparent;box-shadow:inset 0 0 0 1px var(--kbq-line-contrast-fade)}
+.k-badge__dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.k-tag{display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 4px 0 8px;border-radius:4px;background:var(--kbq-background-contrast-fade);color:var(--kbq-foreground-contrast);white-space:nowrap}
+.k-tag--theme{background:var(--kbq-background-theme-fade);color:var(--kbq-foreground-theme)}
+.k-tag--error{background:var(--kbq-background-error-fade);color:var(--kbq-foreground-error)}
+.k-tag--plain{padding-right:8px}
+.k-tag__x{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;padding:0;border:0;border-radius:4px;background:transparent;color:inherit;opacity:.6;cursor:pointer}
+.k-tag__x:hover{opacity:1;background:var(--kbq-states-background-transparent-hover)}
+.k-tag__x .ic{width:12px;height:12px}
+.k-tags{display:inline-flex;flex-wrap:wrap;gap:4px}
+.k-table .k-tags{flex-wrap:nowrap}
+.k-nowrap{white-space:nowrap}
+/* tabs, segment (button-toggle) */
+.k-tabs{display:flex;gap:4px;align-items:center}
+.k-tab{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:0;border-radius:8px;background:transparent;color:var(--kbq-foreground-contrast);font:inherit;font-weight:500;cursor:pointer;white-space:nowrap}
+.k-tab:hover{background:var(--kbq-states-background-transparent-hover)}
+.k-tab.is-active{background:var(--kbq-states-background-transparent-active)}
+.k-tab .ic{color:var(--kbq-icon-contrast-fade)}
+.k-tabs--line{gap:0;border-bottom:1px solid var(--kbq-line-contrast-less)}
+.k-tabs--line .k-tab{border-radius:8px 8px 0 0;padding:8px 12px;margin-bottom:-1px;border-bottom:2px solid transparent;color:var(--kbq-foreground-contrast-secondary)}
+.k-tabs--line .k-tab.is-active{background:transparent;border-bottom-color:var(--kbq-background-theme);color:var(--kbq-foreground-contrast)}
+.k-segment{display:inline-flex;padding:2px;border-radius:8px;background:var(--kbq-background-contrast-less);gap:2px}
+.k-segment button{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border:0;border-radius:6px;background:transparent;color:var(--kbq-foreground-contrast);font:inherit;font-weight:500;cursor:pointer}
+.k-segment button.is-active{background:var(--kbq-background-card);box-shadow:var(--kbq-shadow-card)}
+/* table */
+.k-table{width:100%;border-collapse:collapse}
+.k-table th{padding:8px 12px;border-bottom:1px solid var(--kbq-line-contrast-fade);text-align:left;font-size:12px;line-height:16px;font-weight:500;color:var(--kbq-foreground-contrast-secondary);white-space:nowrap}
+.k-table td{padding:10px 12px;border-bottom:1px solid var(--kbq-line-contrast-less);vertical-align:middle}
+.k-table--compact td{padding:6px 12px}
+.k-table tbody tr:hover{background:var(--kbq-states-background-transparent-hover)}
+.k-table tbody tr.is-selected{background:var(--kbq-background-theme-less)}
+.k-table tbody tr.is-clickable{cursor:pointer}
+.k-table th.is-sorted{color:var(--kbq-foreground-contrast)}
+.k-table th .ic{width:12px;height:12px;vertical-align:-2px;margin-left:2px}
+.k-table .k-cell-sub{display:block;font-size:12px;line-height:16px;color:var(--kbq-foreground-contrast-secondary)}
+.k-table .k-cell-actions{text-align:right;white-space:nowrap;padding-top:4px;padding-bottom:4px}
+.k-table .k-cell-check{width:32px;padding-right:0}
+.k-table .k-cell-num{text-align:right;font-variant-numeric:tabular-nums}
+.k-table--sticky thead th{position:sticky;top:0;background:var(--kbq-background-bg);z-index:1}
+/* list, tree */
+.k-list{display:flex;flex-direction:column;padding:4px 0}
+.k-list__item{display:flex;align-items:center;gap:8px;min-height:32px;padding:4px 12px;cursor:pointer}
+.k-list__item:hover{background:var(--kbq-states-background-transparent-hover)}
+.k-list__item.is-selected{background:var(--kbq-background-theme-less)}
+.k-list__item .ic{color:var(--kbq-icon-contrast-fade)}
+.k-list__caption{padding:8px 12px 4px;font-size:12px;line-height:16px;color:var(--kbq-foreground-contrast-secondary)}
+.k-tree{display:flex;flex-direction:column;padding:4px 0}
+.k-tree__node{display:flex;align-items:center;gap:4px;height:32px;padding:4px 8px;padding-left:calc(8px + var(--lvl,0)*24px);border-radius:8px;cursor:pointer;white-space:nowrap}
+.k-tree__node:hover{background:var(--kbq-states-background-transparent-hover)}
+.k-tree__node.is-selected{background:var(--kbq-background-theme-less)}
+.k-tree__toggle{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;color:var(--kbq-icon-contrast-fade);transition:transform .15s}
+.k-tree__node.is-open .k-tree__toggle{transform:rotate(90deg)}
+.k-tree__node.is-leaf .k-tree__toggle{visibility:hidden}
+.k-tree__icon{color:var(--kbq-icon-contrast-fade);margin-right:4px}
+/* dropdown (menu / select options), tooltip, popover */
+.k-dropdown{position:absolute;z-index:40;min-width:200px;max-width:360px;padding:4px;border-radius:8px;background:var(--kbq-background-card);box-shadow:var(--kbq-shadow-popup);color:var(--kbq-foreground-contrast);text-align:left;font-weight:400}
+.k-dropdown__item{display:flex;align-items:center;gap:8px;min-height:32px;padding:6px 8px;border-radius:6px;cursor:pointer;white-space:nowrap}
+.k-dropdown__item:hover{background:var(--kbq-states-background-transparent-hover)}
+.k-dropdown__item.is-selected{background:var(--kbq-background-theme-less)}
+.k-dropdown__item.is-disabled{color:var(--kbq-states-foreground-disabled);pointer-events:none}
+.k-dropdown__item.is-danger{color:var(--kbq-foreground-error)}
+.k-dropdown__item .ic{color:var(--kbq-icon-contrast-fade)}
+.k-dropdown__item.is-danger .ic{color:var(--kbq-icon-error)}
+.k-dropdown__hint{margin-left:auto;padding-left:16px;color:var(--kbq-foreground-contrast-tertiary);font-size:12px}
+.k-dropdown__caption{padding:8px 8px 4px;font-size:12px;line-height:16px;color:var(--kbq-foreground-contrast-secondary)}
+.k-dropdown__divider{height:1px;margin:4px 0;background:var(--kbq-line-contrast-less)}
+.k-dropdown__search{margin:0 0 4px}
+.k-dropdown__search .k-input{border-color:transparent;background:var(--kbq-background-bg-secondary)}
+.k-dropdown--wide{min-width:280px}
+.k-tooltip{position:absolute;z-index:45;max-width:300px;padding:8px 12px;border-radius:8px;background:var(--kbq-background-night);color:#fff;font-size:14px;line-height:20px;box-shadow:var(--kbq-shadow-popup);pointer-events:none;white-space:normal}
+.k-tooltip--fade{background:var(--kbq-background-card);color:var(--kbq-foreground-contrast)}
+.k-tooltip--error{background:var(--kbq-background-error);color:#fff}
+.k-popover{position:absolute;z-index:40;width:400px;border-radius:12px;background:var(--kbq-background-card);box-shadow:var(--kbq-shadow-overlay);color:var(--kbq-foreground-contrast);text-align:left;font-weight:400}
+.k-popover--compact{width:200px}.k-popover--wide{width:640px}
+.k-popover__header{display:flex;align-items:flex-start;gap:8px;padding:16px 16px 6px 24px}
+.k-popover__header h3{flex:1;font-size:18px;line-height:26px;font-weight:600}
+.k-popover__body{padding:0 24px 24px}
+.k-popover__footer{display:flex;gap:8px;padding:0 24px 20px}
+.k-anchor{position:relative;display:inline-block}
+.k-anchor--block{display:block}
+.k-float{position:absolute;top:calc(100% + 4px);left:0}
+.k-float--right{left:auto;right:0}
+.k-float--top{top:auto;bottom:calc(100% + 4px)}
+.k-float--center{left:50%;transform:translateX(-50%)}
+.k-anchor--block>.k-dropdown{right:0;max-width:none}
+/* hover/focus tooltip: tip(html, 'text') — works on a disabled button too */
+.k-tip>.k-tooltip{display:none;width:max-content}
+.k-tip:hover>.k-tooltip,.k-tip:focus>.k-tooltip,.k-tip:focus-within>.k-tooltip{display:block}
+.k-tip:focus{outline:0}
+.k-tip:focus-visible{outline:2px solid var(--kbq-states-line-focus);outline-offset:2px;border-radius:8px}
+/* modal, sidepanel, loader-overlay */
+.k-overlay{position:absolute;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:var(--kbq-background-overlay)}
+.k-overlay--panel{justify-content:flex-end;align-items:stretch;padding:8px}
+.k-modal{display:flex;flex-direction:column;width:var(--w,640px);max-width:calc(100% - 48px);max-height:calc(100% - 48px);border-radius:12px;background:var(--kbq-background-card);box-shadow:var(--kbq-shadow-overlay);color:var(--kbq-foreground-contrast)}
+.k-modal--small{--w:400px}.k-modal--large{--w:960px}
+.k-modal__header{position:relative;padding:16px 56px 16px 24px;font-size:18px;line-height:26px;font-weight:600}
+.k-modal__close{position:absolute;top:13px;right:16px}
+.k-modal__body{flex:1;min-height:0;overflow:auto;padding:4px 24px}
+.k-modal__body>*+*{margin-top:16px}
+.k-modal__footer{display:flex;align-items:center;gap:8px;padding:20px 24px}
+.k-sidepanel{display:flex;flex-direction:column;width:var(--w,640px);max-width:100%;border-radius:12px;background:var(--kbq-background-card);box-shadow:var(--kbq-shadow-overlay);color:var(--kbq-foreground-contrast)}
+.k-sidepanel--small{--w:400px}.k-sidepanel--large{--w:960px}
+.k-sidepanel__header{display:flex;align-items:center;gap:8px;padding:16px 16px 16px 24px;font-size:18px;line-height:26px;font-weight:600}
+.k-sidepanel__body{flex:1;min-height:0;overflow:auto;padding:4px 24px 24px}
+.k-sidepanel__body>*+*{margin-top:16px}
+.k-sidepanel__footer{display:flex;align-items:center;gap:8px;padding:20px 24px;border-top:1px solid var(--kbq-line-contrast-less)}
+.k-loader{position:absolute;inset:0;z-index:90;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:color-mix(in srgb,var(--kbq-background-bg) 70%,transparent)}
+.k-loader__text{color:var(--kbq-foreground-contrast-secondary)}
+/* alert, toast, empty state */
+.k-alert{display:flex;gap:8px;padding:8px;border-radius:12px;background:var(--kbq-background-contrast-less)}
+.k-alert>.ic{margin:8px 0 0 4px;color:var(--kbq-icon-contrast-fade)}
+.k-alert__body{flex:1;padding:4px 8px 4px 0}
+.k-alert__title{font-weight:500}
+.k-alert__actions{display:flex;gap:8px;margin-top:8px}
+.k-alert>.k-icon-btn{margin:2px 0 0}
+.k-alert--theme{background:var(--kbq-background-theme-less)}.k-alert--theme>.ic{color:var(--kbq-icon-theme)}
+.k-alert--error{background:var(--kbq-background-error-less)}.k-alert--error>.ic{color:var(--kbq-icon-error)}
+.k-alert--warning{background:var(--kbq-background-warning-less)}.k-alert--warning>.ic{color:var(--kbq-icon-warning)}
+.k-alert--success{background:var(--kbq-background-success-less)}.k-alert--success>.ic{color:var(--kbq-icon-success)}
+.k-alert--compact{padding:4px 8px;border-radius:8px}.k-alert--compact>.ic{margin:4px 0 0}.k-alert--compact .k-alert__body{padding:2px 0}
+.k-toasts{position:absolute;right:16px;bottom:16px;z-index:200;display:flex;flex-direction:column;gap:8px}
+.k-toast{display:flex;gap:8px;width:360px;padding:16px 8px 16px 12px;border-radius:8px;background:var(--kbq-background-card);box-shadow:var(--kbq-shadow-popup);color:var(--kbq-foreground-contrast)}
+.k-toast>.ic{margin-top:2px;color:var(--kbq-icon-contrast-fade)}
+.k-toast--success>.ic{color:var(--kbq-icon-success)}.k-toast--error>.ic{color:var(--kbq-icon-error)}.k-toast--warning>.ic{color:var(--kbq-icon-warning)}.k-toast--theme>.ic{color:var(--kbq-icon-theme)}
+.k-toast__body{flex:1}
+.k-toast__title{font-weight:500}
+.k-toast__text{color:var(--kbq-foreground-contrast-secondary)}
+.k-toast>.k-icon-btn{margin:-6px -4px 0 0}
+.k-empty{display:flex;flex-direction:column;align-items:center;gap:4px;max-width:320px;margin:auto;padding:32px;text-align:center}
+.k-empty--big{max-width:480px}
+.k-empty>.ic{margin-bottom:12px;color:var(--kbq-icon-contrast-fade)}
+.k-empty__title{font-weight:500}
+.k-empty__text{color:var(--kbq-foreground-contrast-secondary)}
+.k-empty__actions{display:flex;gap:8px;margin-top:16px}
+/* top-bar, breadcrumbs, navbar */
+.k-topbar{display:flex;align-items:center;gap:12px;padding:12px 24px;background:var(--kbq-background-bg);flex:none;min-height:56px}
+.k-topbar--line{border-bottom:1px solid var(--kbq-line-contrast-less)}
+.k-topbar__title{flex:none;max-width:50%;min-width:0;font-size:20px;line-height:28px;font-weight:700;letter-spacing:-0.017em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.k-topbar__actions{display:flex;align-items:center;gap:8px;margin-left:auto;flex:0 1 auto;min-width:0}
+.k-topbar__actions .k-input-wrap{flex:0 1 auto;min-width:120px}
+.k-topbar__actions>.k-btn{flex:none}
+.k-topbar__pre{display:flex;flex-direction:column;flex:1;min-width:0}
+.k-topbar__pre .k-topbar__title{flex:none}
+.k-topbar .k-icon-btn--back{margin-left:-8px}
+.k-breadcrumbs{display:flex;align-items:center;gap:4px;color:var(--kbq-foreground-contrast-secondary)}
+.k-breadcrumbs .ic{width:12px;height:12px;color:var(--kbq-icon-contrast-fade)}
+.k-breadcrumbs a{color:inherit;text-decoration:none;cursor:pointer}.k-breadcrumbs a:hover{color:var(--kbq-foreground-contrast)}
+.k-breadcrumbs .is-current{color:var(--kbq-foreground-contrast)}
+.k-navbar{display:flex;flex-direction:column;gap:2px;width:240px;flex:none;padding:8px;background:var(--kbq-background-bg-tertiary);border-right:1px solid var(--kbq-line-contrast-less);overflow:auto}
+.k-navbar--collapsed{width:56px}
+.k-navbar--collapsed .k-navbar__item span,.k-navbar--collapsed .k-navbar__title,.k-navbar--collapsed .k-navbar__brand span{display:none}
+.k-navbar__item{display:flex;align-items:center;gap:8px;height:32px;padding:0 8px;border-radius:8px;color:var(--kbq-foreground-contrast);text-decoration:none;cursor:pointer;white-space:nowrap}
+.k-navbar__item .ic{color:var(--kbq-icon-contrast-fade)}
+.k-navbar__item:hover{background:var(--kbq-states-background-transparent-hover)}
+.k-navbar__item.is-selected{background:var(--kbq-states-background-transparent-active)}
+.k-navbar__item.is-selected .ic{color:var(--kbq-icon-contrast)}
+.k-navbar__item .k-badge{margin-left:auto}
+.k-navbar__title{padding:12px 8px 4px;font-size:12px;line-height:16px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--kbq-foreground-contrast-secondary)}
+.k-navbar__spacer{flex:1}
+.k-navbar__brand{display:flex;align-items:center;gap:8px;height:40px;padding:0 8px;margin-bottom:8px;font-weight:600}
+.k-logo{display:inline-block;width:24px;height:24px;border-radius:6px;background:var(--kbq-background-theme);flex:none}
+.k-navbar--horizontal{flex-direction:row;align-items:center;width:auto;height:48px;padding:0 16px;background:var(--kbq-background-bg);border-right:0;border-bottom:1px solid var(--kbq-line-contrast-less);gap:4px;overflow:visible}
+.k-navbar--horizontal .k-navbar__brand{margin:0 16px 0 0;height:32px}
+/* link, divider, spinner, skeleton, progress, code, dl, card, accordion, misc */
+.k-link{color:var(--kbq-foreground-theme);text-decoration:underline;text-decoration-color:var(--kbq-line-theme-fade);text-underline-offset:2px;cursor:pointer}
+.k-link:hover{text-decoration-color:currentColor}
+.k-link--contrast{color:var(--kbq-foreground-contrast);text-decoration-color:var(--kbq-line-contrast-fade)}
+.k-link--plain{text-decoration:none}.k-link--plain:hover{text-decoration:underline}
+.k-pseudo{color:var(--kbq-foreground-theme);border-bottom:1px dashed var(--kbq-line-theme-fade);cursor:pointer}
+.k-divider{height:1px;background:var(--kbq-line-contrast-less);margin:0;border:0}
+.k-divider--vertical{width:1px;height:16px;align-self:center}
+.k-spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--kbq-line-contrast-fade);border-top-color:var(--kbq-background-theme);border-radius:50%;animation:k-spin .8s linear infinite;flex:none}
+.k-spinner--big{width:32px;height:32px;border-width:3px}
+@keyframes k-spin{to{transform:rotate(360deg)}}
+.k-skeleton{display:block;height:16px;border-radius:4px;background:var(--kbq-background-contrast-less);animation:k-pulse 1.4s ease-in-out infinite}
+@keyframes k-pulse{50%{opacity:.5}}
+.k-progress{height:4px;border-radius:2px;background:var(--kbq-background-contrast-less);overflow:hidden}
+.k-progress>i{display:block;height:100%;width:var(--v,40%);background:var(--kbq-background-theme)}
+.k-progress--error>i{background:var(--kbq-background-error)}.k-progress--success>i{background:var(--kbq-background-success)}
+.k-code{margin:0;padding:12px;border-radius:8px;background:var(--kbq-background-bg-secondary);font-family:var(--kbq-font-family-mono);font-size:12px;line-height:16px;letter-spacing:0;white-space:pre-wrap;word-break:break-word}
+.k-dl{display:grid;grid-template-columns:max-content 1fr;gap:8px 24px;margin:0}
+.k-dl dt{color:var(--kbq-foreground-contrast-secondary)}
+.k-dl dd{margin:0;min-width:0}
+.k-dl--vertical{grid-template-columns:1fr;gap:2px 0}.k-dl--vertical dd{margin-bottom:12px}
+.k-card{border:1px solid var(--kbq-line-contrast-less);border-radius:12px;background:var(--kbq-background-card);padding:16px}
+.k-card--shadow{border:0;box-shadow:var(--kbq-shadow-card)}
+.k-card__title{font-weight:600;margin-bottom:8px}
+.k-accordion__head{display:flex;align-items:center;gap:8px;padding:8px 0;font-weight:500;cursor:pointer}
+.k-accordion__head .ic{color:var(--kbq-icon-contrast-fade);transition:transform .15s}
+.k-accordion.is-open .k-accordion__head .ic{transform:rotate(90deg)}
+.k-accordion__body{display:none;padding:0 0 12px 24px}
+.k-accordion.is-open .k-accordion__body{display:block}
+.k-kbd{display:inline-block;padding:0 4px;border:1px solid var(--kbq-line-contrast-fade);border-bottom-width:2px;border-radius:4px;font-family:var(--kbq-font-family-mono);font-size:12px;line-height:16px}
+.k-avatar{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--kbq-background-theme-fade);color:var(--kbq-foreground-theme);font-size:11px;font-weight:600;flex:none}
+.k-filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0}
+.k-filter{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 8px 0 12px;border:1px solid var(--kbq-line-contrast-fade);border-radius:8px;background:var(--kbq-background-bg);cursor:pointer;white-space:nowrap}
+.k-filter b{font-weight:500}
+.k-filter .ic{color:var(--kbq-icon-contrast-fade)}
+.k-filter--active{border-color:var(--kbq-line-theme-fade);background:var(--kbq-background-theme-less)}
+/* layout helpers */
+.app-body{flex:1;min-height:0;display:flex}
+.app-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.app-content{flex:1;min-height:0;overflow:auto;padding:16px 24px 24px}
+.app-content--flush{padding:0}
+.app-aside{width:320px;flex:none;border-left:1px solid var(--kbq-line-contrast-less);overflow:auto;padding:16px}
+.row{display:flex;align-items:center;gap:8px}.row--wrap{flex-wrap:wrap}.row--top{align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:8px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.gap-4{gap:4px}.gap-16{gap:16px}.gap-24{gap:24px}
+.mt-4{margin-top:4px}.mt-8{margin-top:8px}.mt-16{margin-top:16px}.mt-24{margin-top:24px}.mb-8{margin-bottom:8px}.mb-16{margin-bottom:16px}.mb-24{margin-bottom:24px}
+.w-160{width:160px}.w-240{width:240px}.w-320{width:320px}.w-480{width:480px}.w-640{width:640px}.w-full{width:100%}
+.k-spacer{flex:1}
+.hidden{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ===== 4. NOTES & MARKERS ===== */
+.marker{position:absolute;top:var(--y,0);left:var(--x,100%);z-index:30;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--deck-accent);color:#fff;font:700 12px/1 Inter,sans-serif;font-style:normal;letter-spacing:0;box-shadow:0 0 0 2px var(--kbq-background-bg);cursor:pointer;transform:translate(-50%,-50%);transition:transform .15s;pointer-events:auto}
+.marker:hover,.marker.is-hot{transform:translate(-50%,-50%) scale(1.15)}
+.marker.is-pinned{box-shadow:0 0 0 2px var(--kbq-background-bg),0 0 0 4px var(--deck-accent)}
+.marker--inline{position:static;transform:none;vertical-align:middle;margin:0 4px;box-shadow:none}
+.marker--inline:hover,.marker--inline.is-hot{transform:scale(1.15)}
+[data-anchor]{position:relative}
+.changed{outline:1px dashed var(--deck-accent);outline-offset:3px;border-radius:4px}
+[data-anchor].is-hot{outline:2px solid var(--deck-accent);outline-offset:3px;box-shadow:0 0 0 6px color-mix(in srgb,var(--deck-accent) 25%,transparent)}
+.flash{animation:k-flash 1.4s ease-out}
+@keyframes k-flash{0%{box-shadow:0 0 0 2px color-mix(in srgb,var(--deck-accent) 70%,transparent)}100%{box-shadow:0 0 0 12px transparent}}
+body:not(.notes-on) .marker{display:none}
+body:not(.notes-on) .changed{outline:0}
+/* in the scrollable body of a modal/side panel the marker sits inside the element's corner, otherwise the scroll clips it */
+:is(.k-modal__body,.k-sidepanel__body) .marker{--y:10px}
+/* an overlay is open (modal, side panel, modal over a panel) — markers and outlines show only in the topmost one (the runtime sets .is-top) */
+#view:has(.k-overlay) .marker:not(.k-overlay.is-top .marker){display:none}
+#view:has(.k-overlay) .changed:not(.k-overlay.is-top, .k-overlay.is-top .changed){outline:0}
+/* what is clickable: a flash on a click outside anything clickable and while Cmd/Ctrl is held; own color — the blue accent is invisible on primary buttons; below the comments layer */
+.chints{position:absolute;inset:0;z-index:999;overflow:hidden;pointer-events:none}
+.chints.is-out{opacity:0;transition:opacity .3s}
+.chint{position:absolute;border-radius:6px;background:color-mix(in srgb,var(--deck-hint) 22%,transparent);box-shadow:inset 0 0 0 2px var(--deck-hint)}
+/* reviewer comments: a pin layer over the app, above modals, side panels and toasts (overflow:hidden — pins near the edge don't widen the frame) */
+.cpins{position:absolute;inset:0;z-index:1000;overflow:hidden;pointer-events:none}
+.cpin{position:absolute;display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:11px 11px 11px 2px;background:var(--deck-cm);color:var(--deck-cm-fg);font:700 12px/1 Inter,sans-serif;box-shadow:0 0 0 2px var(--kbq-background-bg),0 4px 10px rgba(0,0,0,.25);transform:translate(0,-100%);transform-origin:0 100%;cursor:pointer;pointer-events:auto;transition:transform .12s}
+.cpin:hover,.cpin.is-hot{transform:translate(0,-100%) scale(1.15)}
+.cpin.is-draft{background:#fff;box-shadow:0 0 0 2px var(--deck-cm),0 4px 10px rgba(0,0,0,.25)}
+body:not(.cmts-on) .cpin:not(.is-draft){display:none}
+.cbox{position:absolute;border:1.5px solid var(--deck-cm);border-radius:4px;background:color-mix(in srgb,var(--deck-cm) 10%,transparent);pointer-events:none}
+.cbox[hidden]{display:none}
+.cbox__label{position:absolute;left:-1.5px;bottom:100%;margin-bottom:4px;padding:2px 6px;border-radius:4px;background:var(--deck-cm);color:var(--deck-cm-fg);font:600 11px/16px 'JetBrains Mono',Menlo,monospace;white-space:nowrap}
+:is(.cm-picking,.cm-alt) #view,:is(.cm-picking,.cm-alt) #view *{cursor:crosshair!important}
+.ccompose{position:absolute;width:300px;padding:10px;border:1px solid var(--deck-line);border-radius:10px;background:var(--deck-bg-2);box-shadow:0 12px 32px rgba(0,0,0,.45);color:var(--deck-fg);font:13px/18px Inter,sans-serif;pointer-events:auto}
+.ccompose__el{margin:0 0 8px;font:11px/16px 'JetBrains Mono',Menlo,monospace;color:var(--deck-fg-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ===== 5. PROTOTYPE STYLES — styles of this prototype ===== */
+/* Only what k-* doesn't cover: specific layout, custom blocks. */
+</style>
+</head>
+<body class="notes-on">
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+<symbol id="i-chevron-down" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
+<symbol id="i-chevron-up" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></symbol>
+<symbol id="i-chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol>
+<symbol id="i-chevron-left" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+<symbol id="i-minus" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+<symbol id="i-filter" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></symbol>
+<symbol id="i-sliders" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+<symbol id="i-more-horizontal" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+<symbol id="i-more-vertical" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+<symbol id="i-help-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+<symbol id="i-alert-triangle" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+<symbol id="i-alert-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></symbol>
+<symbol id="i-check-circle" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
+<symbol id="i-x-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></symbol>
+<symbol id="i-arrow-left" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol>
+<symbol id="i-arrow-right" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol>
+<symbol id="i-external-link" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+<symbol id="i-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+<symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
+<symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></symbol>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+<symbol id="i-list" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></symbol>
+<symbol id="i-columns" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+<symbol id="i-activity" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></symbol>
+<symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></symbol>
+<symbol id="i-server" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></symbol>
+<symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
+<symbol id="i-notes" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol>
+<symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+<symbol id="i-drag" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></symbol>
+<symbol id="i-fit" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></symbol>
+<symbol id="i-map" viewBox="0 0 24 24"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><path d="M8 2v16M16 6v16"/></symbol>
+</svg>
+
+<header class="deck">
+  <div class="deck__nav"><button class="deck__btn deck__btn--icon" data-act="deck:back" id="deckBack" data-i18n-title="back" disabled><svg class="ic"><use href="#i-arrow-left"/></svg></button><button class="deck__btn deck__btn--icon" data-act="deck:fwd" id="deckFwd" data-i18n-title="forward" disabled><svg class="ic"><use href="#i-arrow-right"/></svg></button></div>
+  <div class="deck__title" id="deckTitle"></div>
+  <div class="deck__vars" id="deckVars" hidden></div>
+  <button class="deck__btn deck__state" data-act="deck:states" id="deckState" data-i18n-title="stepState"></button>
+  <button class="deck__btn" data-act="deck:map" id="deckMap" hidden data-i18n-title="mapTitle" data-i18n="map"><svg class="ic"><use href="#i-map"/></svg></button>
+  <button class="deck__btn" data-act="deck:notes" id="deckNotes" data-i18n="notes"><svg class="ic"><use href="#i-notes"/></svg></button>
+  <button class="deck__btn" data-act="deck:cmts" id="deckCmts" data-i18n-title="cmtsTitle"></button>
+  <button class="deck__btn deck__btn--icon" data-act="deck:opts" id="deckOpts" data-i18n-title="settings"><svg class="ic"><use href="#i-sliders"/></svg></button>
+  <button class="deck__btn deck__btn--icon" data-act="deck:theme" id="deckTheme" data-i18n-title="theme"></button>
+  <div class="deck__pop" id="deckPop" hidden></div>
+  <div class="deck__pop deck__opts" id="deckOptsPop" hidden></div>
+</header>
+<div class="stage">
+  <div class="browser">
+    <div class="browser__bar"><i class="browser__dot"></i><i class="browser__dot"></i><i class="browser__dot"></i><div class="browser__url" id="browserUrl"></div></div>
+    <div class="browser__body"><div class="app kbq-light" id="app"><div class="app-view" id="view"></div><div class="k-toasts" id="toasts"></div><div class="chints is-out" id="chints"></div><div class="cpins" id="cpins"></div></div></div>
+  </div>
+  <aside class="notes" id="notes"></aside>
+  <aside class="cmts" id="cmts"></aside>
+</div>
+<main class="map" id="map"></main>
+<div class="cm-hint" id="cmHint" hidden data-i18n="pickHint"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════
+   PROTOTYPE — edit this block: title, steps/states, data, views,
+   actions, notes. Below it is the RUNTIME, which you don't need to edit.
+   ══════════════════════════════════════════════════════════════════════ */
+const PROTO = {
+  title: 'Correlation rules',                          // short title in the header, no subtitles
+  url: (S) => 'siem.local/rules' + (S.step === 'form' ? '/new' : ''),  // the frame's address bar
+};
+
+/* Steps (columns) and states (rows) — exactly what the "Step · State" button shows.
+   Opening a state directly (popover, link, screen map, note) starts from the initial S + the state's seed;
+   transitions inside the flow (goto from ACTIONS) keep what the user entered. */
+const STEPS = [
+  { id: 'list', title: 'List', states: [
+    { id: 'data',    title: 'With data' },
+    { id: 'empty',   title: 'Empty' },
+  ]},
+  { id: 'form', title: 'Form', states: [
+    { id: 'new',     title: 'New' },
+    { id: 'errors',  title: 'With errors' },
+    { id: 'confirm', title: 'Confirmation', seed: { name: 'Brute force: RDP' } },  // seed — S values when the state is opened directly
+  ]},
+];
+/* Cross-cutting switches (role, feature flag, data size) — shown at the bottom of the popover. */
+const SWITCHES = [
+  { id: 'perm', title: 'Permission', options: ['yes', 'no'] },
+];
+/* Prototype state. step/state/sw are required; the rest is whatever the prototype needs. */
+/* S.menu — id of the open menu/dropdown (data-act="menu" data-menu="id"); any other click or Esc closes it. */
+const S = { step: 'list', state: 'data', sw: { perm: 'yes' },
+  selected: [], menu: null, name: '', severity: 'medium' };
+
+/* Notes. anchor = note-<id> on an element in the view; step/state — where to look if the element isn't there right now. */
+const NOTES = [
+  { id: 1, step: 'list', state: 'data', title: 'Create is the primary action',
+    text: '<p>The "Create rule" button moved to the list header as primary. Creating used to be hidden in the "…" menu.</p>',
+    try: 'click the button to open the form; switch to "Permission: no" and the button becomes disabled, with a tooltip explaining why.' },
+  { id: 2, step: 'list', state: 'data', title: 'Severity instead of priority',
+    text: '<p>The "Severity" column — the severity of the incident the rule creates — replaces the numeric priority. Three levels, the color is a Koobiq badge (<code>error / warning / contrast</code>). Check: are three levels enough?</p>' },
+  { id: 3, step: 'form', state: 'new', title: 'Condition in its own mono field',
+    text: '<p>The rule condition is edited in a monospace field with a syntax hint. Syntax highlighting is out of scope.</p>',
+    try: 'click "Save" to see the confirmation.' },
+  { id: 4, step: 'form', state: 'errors', title: 'Errors at the field and at the top',
+    text: '<p>A validation error shows both in the alert at the top and under the field itself. The field turns red (<code>is-error</code>).</p>' },
+];
+
+/* The screen map (header button) builds itself: screens come from STEPS, transitions from data-goto and goto()/openState() in ACTIONS
+   on every screen, including menu items and the top overlay. A transition it can't find this way (a timer, a call through a helper function)
+   goes here: { from: 'step/state', to: 'step/state', label: 'Double-click a row' }. */
+const LINKS = [];
+
+/* Demo data */
+const SEVERITY = { high: ['High', 'error'], medium: ['Medium', 'warning'], low: ['Low', ''] };
+const NO_PERM = 'No permission to create rules. Contact your SIEM administrator';
+const RULES = [
+  { id: 1, name: 'Brute force: RDP', sub: 'Windows · Authentication', sev: 'high', tags: ['T1110', 'RDP'], on: true, updated: 'Today, 14:02' },
+  { id: 2, name: 'Suspicious PowerShell', sub: 'Windows · Processes', sev: 'high', tags: ['T1059.001'], on: true, updated: 'Yesterday' },
+  { id: 3, name: 'Failed VPN logins', sub: 'Network · VPN', sev: 'medium', tags: ['T1110', 'VPN'], on: false, updated: 'Oct 3' },
+  { id: 6, name: 'Volume shadow copies deleted via vssadmin or wmic on multiple hosts within 10 minutes', sub: 'Windows · Processes · Ransomware', sev: 'high', tags: ['T1490', 'T1047', 'Ransomware'], on: true, updated: 'Oct 2' },
+  { id: 4, name: 'New domain administrator', sub: 'Active Directory', sev: 'medium', tags: ['T1098'], on: true, updated: 'Oct 1' },
+  { id: 5, name: 'Launch from a USB drive', sub: 'Windows · Devices', sev: 'low', tags: ['T1091'], on: true, updated: 'Sep 28' },
+];
+
+/* Shared markup pieces */
+function navbar(active) {
+  const items = [['home', 'Dashboard'], ['activity', 'Events'], ['shield', 'Rules'], ['server', 'Sources'], ['bell', 'Incidents'], ['settings', 'Settings']];
+  return `<nav class="k-navbar"><div class="k-navbar__brand"><span class="k-logo"></span><span>SIEM</span></div>
+    ${items.map(([ic, t]) => `<a class="k-navbar__item ${t === active ? 'is-selected' : ''}">${icon(ic)}<span>${t}</span></a>`).join('')}
+    <div class="k-navbar__spacer"></div><a class="k-navbar__item">${icon('user')}<span>Alex Johnson</span></a></nav>`;
+}
+
+/* Views: one per step; read the state from S.state. They return HTML. */
+const VIEWS = {
+  list: (S) => {
+    const noPerm = S.sw.perm === 'no';
+    let body;
+    if (S.state === 'empty') body = `
+      <div class="k-empty k-empty--big" style="margin-top:80px">${icon('shield', 'ic--40')}
+        <div class="k-empty__title">No rules yet</div>
+        <div class="k-empty__text">Create your first correlation rule or import a ready-made set.</div>
+        <div class="k-empty__actions">${noPerm ? tip('<button class="k-btn k-btn--primary" disabled>Create rule</button>', NO_PERM) : '<button class="k-btn k-btn--primary" data-act="create">Create rule</button>'}<button class="k-btn">Import</button></div>
+      </div>`;
+    else body = `
+      <table class="k-table">
+        <thead><tr>
+          <th class="k-cell-check"><span class="k-checkbox ${S.selected.length === RULES.length ? 'is-checked' : S.selected.length ? 'is-indeterminate' : ''}" data-act="select-all"><span class="k-checkbox__box"></span></span></th>
+          <th>Name</th>
+          <th class="changed" data-anchor="note-2">Severity${marker(2)}</th>
+          <th>Tags</th><th>Status</th>
+          <th class="is-sorted">Modified${icon('chevron-down')}</th><th></th>
+        </tr></thead>
+        <tbody>${RULES.map(r => `
+          <tr class="is-clickable ${S.selected.includes(r.id) ? 'is-selected' : ''}" data-act="select-row" data-id="${r.id}">
+            <td class="k-cell-check"><span class="k-checkbox ${S.selected.includes(r.id) ? 'is-checked' : ''}"><span class="k-checkbox__box"></span></span></td>
+            <td><span class="k-link k-link--contrast k-link--plain">${esc(r.name)}</span><span class="k-cell-sub">${esc(r.sub)}</span></td>
+            <td><span class="k-badge ${SEVERITY[r.sev][1] ? 'k-badge--' + SEVERITY[r.sev][1] : ''}">${SEVERITY[r.sev][0]}</span></td>
+            <td><span class="k-tags">${r.tags.map(t => `<span class="k-tag k-tag--plain">${t}</span>`).join('')}</span></td>
+            <td><label class="k-toggle ${r.on ? 'is-checked' : ''}" data-act="toggle-rule" data-id="${r.id}"><span class="k-toggle__track"></span>${r.on ? 'On' : 'Off'}</label></td>
+            <td class="kbq-secondary k-nowrap">${r.updated}</td>
+            <td class="k-cell-actions"><span class="k-anchor">
+              <button class="k-icon-btn ${S.menu === 'row-' + r.id ? 'is-active' : ''}" data-act="menu" data-menu="row-${r.id}">${icon('more-horizontal')}</button>
+              ${S.menu === 'row-' + r.id ? `<div class="k-dropdown k-float k-float--right">
+                <div class="k-dropdown__item" data-act="close">${icon('edit')}Edit</div>
+                <div class="k-dropdown__item" data-act="close">${icon('copy')}Duplicate</div>
+                <div class="k-dropdown__divider"></div>
+                <div class="k-dropdown__item is-danger" data-act="close">${icon('trash')}Delete</div>
+              </div>` : ''}
+            </span></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+    return `<div class="app-body">${navbar('Rules')}<div class="app-main">
+      <div class="k-topbar k-topbar--line">
+        <div class="k-topbar__title">Correlation rules</div>
+        <div class="k-topbar__actions">
+          <div class="k-input-wrap w-240">${icon('search')}<input class="k-input" placeholder="Search"></div>
+          <button class="k-btn">${icon('filter')}Filters</button>
+          <span class="k-anchor changed" data-anchor="note-1">${noPerm
+            ? tip(`<button class="k-btn k-btn--primary" disabled>${icon('plus')}Create rule</button>`, NO_PERM, 'k-float--right')
+            : `<button class="k-btn k-btn--primary" data-act="create">${icon('plus')}Create rule</button>`}${marker(1)}</span>
+        </div>
+      </div>
+      <div class="app-content" data-scroll="list">
+        ${noPerm ? `<div class="k-alert k-alert--warning mb-16">${icon('alert-triangle')}<div class="k-alert__body"><div class="k-alert__title">Insufficient permissions</div><div>Only the Analyst role can create and edit rules.</div></div></div>` : ''}
+        <div class="row mb-8">
+          <div class="k-tabs"><button class="k-tab is-active">All <span class="k-badge k-badge--compact">${RULES.length}</span></button><button class="k-tab">Enabled</button><button class="k-tab">Drafts</button></div>
+          <span class="k-spacer"></span>
+          ${S.selected.length ? `<span class="kbq-secondary">Selected: ${S.selected.length}</span><button class="k-btn k-btn--compact">Enable</button><button class="k-btn k-btn--compact k-btn--error-fade">Delete</button>` : ''}
+        </div>
+        ${body}
+      </div>
+    </div></div>`;
+  },
+
+  form: (S) => {
+    const err = S.state === 'errors';
+    return `<div class="app-body">${navbar('Rules')}<div class="app-main">
+      <div class="k-topbar k-topbar--line">
+        <div class="k-topbar__pre">
+          <div class="k-breadcrumbs"><a data-act="goto" data-goto="list/data">Rules</a>${icon('chevron-right')}<span class="is-current">New rule</span></div>
+          <div class="k-topbar__title">New rule</div>
+        </div>
+        <div class="k-topbar__actions"><button class="k-btn" data-act="goto" data-goto="list/data">Cancel</button><button class="k-btn k-btn--primary" data-act="save">Save</button></div>
+      </div>
+      <div class="app-content" data-scroll="form">
+        ${err ? `<div class="k-alert k-alert--error mb-16 w-640">${icon('alert-circle')}<div class="k-alert__body"><div class="k-alert__title">Fill in the required fields</div><div>Name and condition can't be empty.</div></div></div>` : ''}
+        <div class="col gap-16 w-640">
+          <div class="k-field">
+            <label class="k-label">Name <span class="req">*</span></label>
+            <input class="k-input ${err ? 'is-error' : ''}" placeholder="For example, Brute force: RDP" data-model="name" value="${esc(S.name)}">
+            ${err ? `<div class="k-hint k-hint--error changed" data-anchor="note-4">Required field${marker(4, '--x:100%;--y:50%')}</div>` : ''}
+          </div>
+          <div class="grid-2">
+            <div class="k-field"><label class="k-label">Severity</label><span class="k-anchor k-anchor--block">
+              <button class="k-select ${S.menu === 'severity' ? 'is-open' : ''}" data-act="menu" data-menu="severity"><span class="k-select__value">${SEVERITY[S.severity][0]}</span>${icon('chevron-down')}</button>
+              ${S.menu === 'severity' ? `<div class="k-dropdown k-float">${Object.entries(SEVERITY).map(([id, [title]]) =>
+                `<div class="k-dropdown__item ${S.severity === id ? 'is-selected' : ''}" data-act="set" data-field="severity" data-value="${id}">${title}</div>`).join('')}</div>` : ''}
+            </span></div>
+            <div class="k-field"><label class="k-label">Tags</label><button class="k-select k-select--tags"><span class="k-tag k-tag--theme">T1110<span class="k-tag__x">${icon('x')}</span></span><span class="k-select__value is-placeholder">Add…</span>${icon('chevron-down')}</button></div>
+          </div>
+          <div class="k-field"><label class="k-label">Rule type</label>
+            <div class="k-check-group k-check-group--row">
+              <label class="k-radio is-checked"><span class="k-radio__dot"></span>Correlation</label>
+              <label class="k-radio"><span class="k-radio__dot"></span>Aggregation</label>
+              <label class="k-radio"><span class="k-radio__dot"></span>Enrichment</label>
+            </div>
+          </div>
+          <div class="k-field changed" data-anchor="note-3">
+            <label class="k-label">Condition <span class="req">*</span></label>
+            <textarea class="k-input k-input--mono ${err ? 'is-error' : ''}" rows="4" placeholder="event.type == &quot;auth_failure&quot; and count(src.ip) >= 10 within 5m"></textarea>
+            <div class="k-hint">Condition language: PDQL. <span class="k-link">Syntax reference</span></div>
+            ${marker(3)}
+          </div>
+          <div class="k-field"><label class="k-label">Actions on trigger</label>
+            <div class="k-check-group">
+              <label class="k-checkbox is-checked"><span class="k-checkbox__box"></span><span>Create an incident<span class="k-check-sub">The incident appears under Incidents</span></span></label>
+              <label class="k-checkbox"><span class="k-checkbox__box"></span>Send a Telegram notification</label>
+              <label class="k-checkbox is-disabled"><span class="k-checkbox__box"></span>Block the source (not available for your role)</label>
+            </div>
+          </div>
+          <hr class="k-divider">
+          <label class="k-toggle is-checked"><span class="k-toggle__track"></span>Enable right after saving</label>
+        </div>
+      </div>
+      ${S.state === 'confirm' ? `
+      <div class="k-overlay"><div class="k-modal k-modal--small">
+        <div class="k-modal__header">Save the rule?<button class="k-icon-btn k-modal__close" data-act="goto" data-goto="form/new">${icon('x')}</button></div>
+        <div class="k-modal__body"><p>The rule will be enabled right after saving and will start creating incidents.</p></div>
+        <div class="k-modal__footer"><button class="k-btn k-btn--primary" data-act="save-confirm">Save rule</button><button class="k-btn" data-act="goto" data-goto="form/new">Cancel</button></div>
+      </div></div>` : ''}
+    </div></div>`;
+  },
+};
+
+/* Actions: data-act="name" → ACTIONS.name(el, event). The view re-renders after an action
+   (return false to skip the re-render). Built-in: goto (data-goto="step/state"), close,
+   menu (data-menu="id" — open/close S.menu), set (data-field="field" data-value="…" — write to S and close the menu).
+   An input with data-live="name" calls ACTIONS.name after every input — for example, goto to "found / nothing found". */
+const ACTIONS = {
+  'create':      () => goto('form', 'new'),
+  'save':        () => S.name.trim() ? goto('form', 'confirm') : goto('form', 'errors', { focus: 'name' }),
+  'save-confirm':() => { goto('list', 'data'); toast('Rule saved', { text: 'It is already enabled and checking events' }); },
+  'select-row':  (el) => { const id = +el.dataset.id; S.selected = S.selected.includes(id) ? S.selected.filter(x => x !== id) : [...S.selected, id]; },
+  'select-all':  () => { S.selected = S.selected.length === RULES.length ? [] : RULES.map(r => r.id); },
+  'toggle-rule': (el) => { const r = RULES.find(r => r.id === +el.dataset.id); r.on = !r.on; },
+};
+
+/* Design variants (optional) — only when the question is "which solution is better". 2–3 variants, no more than 5;
+   they differ in structure (layout, hierarchy, primary action), not in color and copy.
+   The declarations above are variant A. The others declare their own version of whatever differs: STEPS, NOTES, VIEWS, ACTIONS, LINKS, S (on top of the shared S), url;
+   anything missing comes from the shared ones. The A/B/C switch is on the left of the header (keys 1–9 too); each variant has its own screen map,
+   notes and comments; switches and the back/forward history are shared.
+const VARIANTS = [
+  { id: 'table', title: 'Table', text: 'Rules are table rows, the condition is in a column.' },
+  { id: 'cards', title: 'Cards', text: 'Each rule is a card, the full condition is visible.', NOTES: NOTES_CARDS, VIEWS: { ...VIEWS, list: listCards } },
+];
+*/
+
+/* ══════════════════════════════════════════════════════════════════════
+   RUNTIME — no need to edit below
+   ══════════════════════════════════════════════════════════════════════ */
+const $  = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const icon = (name, cls = '') => `<svg class="ic ${cls}"><use href="#i-${name}"/></svg>`;
+const marker = (n, pos = '') => `<i class="marker" data-note="${n}"${pos ? ` style="${pos}"` : ''}>${n}</i>`;
+/* tooltip: tip(html, 'text', 'k-float--top' | 'k-float--right' | 'k-float--top k-float--center' …); works on a disabled button too */
+const tip = (html, text, cls = 'k-float--top') => `<span class="k-anchor k-tip" tabindex="0">${html}<span class="k-tooltip k-float ${cls}" role="tooltip">${esc(text)}</span></span>`;
+/* search: rows.filter(r => matches(S.q, r.name, r.tags)) — ignores case and diacritics, words are ANDed, "quoted phrase" */
+const fold = (s) => String(s ?? '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
+function matches(query, ...fields) {
+  const hay = fold(fields.flat(Infinity).join('\n'));
+  return (fold(query).trim().match(/"[^"]+"|\S+/g) || []).every(t => hay.includes(t.replace(/^"|"$/g, '')));
+}
+const clone = (o) => { try { return structuredClone(o); } catch (e) { return JSON.parse(JSON.stringify(o)); } };
+/* shell UI language: Russian if the browser/OS prefers it, otherwise English. Only the shell is localized — the prototype's own copy is as written.
+   tr('key', ...args) → string; a function entry gets the args. A missing ru key falls back to en. */
+const LANG = /^ru/i.test((navigator.languages && navigator.languages[0]) || navigator.language || '') ? 'ru' : 'en';
+const I18N = {
+  en: {
+    back: 'Back through your history', forward: 'Forward through your history', stepState: 'Step · State',
+    map: 'Screen map', mapTitle: 'All screens and transitions between them', notes: 'Notes', comments: 'Comments',
+    cmtsTitle: 'Reviewer comments · Alt+click on the screen to add', settings: 'Settings', theme: 'Light / dark theme',
+    pickHint: 'Click the spot on the screen the comment is about · <kbd>Esc</kbd> to cancel',
+    noView: (s) => `No view for step "${s}"`,
+    variant: (v) => `Variant ${v}`, variantTip: (v, n) => `Variant ${v} · key ${n}`,
+    hintsOpt: 'Highlight clickable elements when you click outside them',
+    hintsSub: (k) => `You can also press <kbd>${k}</kbd> to show them.`,
+    noNotes: 'No notes', tryIt: 'Try:',
+    field: 'field', input: (p) => `input: ${p}`, transition: 'transition',
+    noteN: (n, title) => `Note ${n}: ${title}`, cmtsN: (n) => `Comments: ${n}`, openScreen: 'Open screen',
+    zoomOut: 'Zoom out (−)', zoomReal: 'Actual size, centered on the selected screen (Shift+0)', zoomIn: 'Zoom in (+)', zoomFit: 'Fit all (Shift+1)',
+    areaModal: 'modal', areaPanel: 'side panel', areaMenu: 'menu', areaTopbar: 'top bar', areaTable: 'table', areaNav: 'navigation', areaForm: 'form',
+    quote: (s) => `"${s}"`,
+    mdHead: (title, file, n, multi) => `# Comments on the prototype "${title}"\n\nFile: ${file}\nComments: ${n}. ` +
+      'A screen opens by its hash (`file#step/state?switches`); find the element by its selector inside `#view`. Edit in the PROTOTYPE block: `VIEWS[step]` and `ACTIONS`' +
+      (multi ? ' of the variant: each variant in VARIANTS has its own screens, and comments are numbered within the variant.\n' : '.\n'),
+    mdTheme: (dark) => `Theme: ${dark ? 'dark' : 'light'}`, mdNote: (n) => `note ${n}`,
+    mdSelector: 'Selector in #view', mdAttrs: 'Attributes', mdWhere: 'Where',
+    cmPlaceholder: 'What should change?', cmKeys: (key, ok) => `${key} to ${ok.toLowerCase()}, Esc to cancel`,
+    cancel: 'Cancel', save: 'Save', edit: 'Edit', del: 'Delete', no: 'No', add: 'Add',
+    clearAsk: (n, v) => `Delete <b>${n === 1 ? "1 comment" : `all ${n} comments`}</b>${v ? ` in variant ${v}` : ''}?`,
+    addTitle: 'Pick a spot on the screen (or Alt+click)',
+    copyTitle: (multi) => `Markdown for the agent: screen, element, selector, text${multi ? ' — all variants' : ''}`,
+    copied: 'Copied', copyAll: 'Copy all', clearAll: 'Delete all',
+    cmtsEmpty: (alt) => `<kbd>${alt}</kbd>+click anywhere on the screen to leave a comment. Or click Add, then the spot.`,
+    otherScreens: 'On other screens',
+  },
+  ru: {
+    back: 'Назад по вашим переходам', forward: 'Вперёд по вашим переходам', stepState: 'Шаг · Состояние',
+    map: 'Карта экранов', mapTitle: 'Все экраны и переходы между ними', notes: 'Пояснения', comments: 'Комментарии',
+    cmtsTitle: 'Комментарии ревьюера · Alt+клик по экрану — добавить', settings: 'Настройки', theme: 'Светлая / тёмная тема',
+    pickHint: 'Кликните место на экране, к которому относится комментарий · <kbd>Esc</kbd> — отмена',
+    noView: (s) => `Нет вида для шага «${s}»`,
+    variant: (v) => `Вариант ${v}`, variantTip: (v, n) => `Вариант ${v} · клавиша ${n}`,
+    hintsOpt: 'Подсвечивать кликабельные элементы при клике мимо них',
+    hintsSub: (k) => `Кроме этого, вы можете нажать <kbd>${k}</kbd>, чтобы их показать.`,
+    noNotes: 'Пояснений нет', tryIt: 'Попробуйте:',
+    field: 'поле', input: (p) => `ввод: ${p}`, transition: 'переход',
+    noteN: (n, title) => `Пояснение ${n}: ${title}`, cmtsN: (n) => `Комментарии: ${n}`, openScreen: 'Открыть экран',
+    zoomOut: 'Уменьшить (−)', zoomReal: 'Реальный размер — к выбранному экрану (Shift+0)', zoomIn: 'Увеличить (+)', zoomFit: 'Вписать всё (Shift+1)',
+    areaModal: 'модалка', areaPanel: 'боковая панель', areaMenu: 'меню', areaTopbar: 'шапка', areaTable: 'таблица', areaNav: 'навигация', areaForm: 'форма',
+    quote: (s) => `«${s}»`,
+    mdHead: (title, file, n, multi) => `# Комментарии к прототипу «${title}»\n\nФайл: ${file}\nКомментариев: ${n}. ` +
+      'Экран открывается хешем (`файл#шаг/состояние?переключатели`), элемент ищется селектором внутри `#view`. Правки — в блоке PROTOTYPE: `VIEWS[шаг]` и `ACTIONS`' +
+      (multi ? ' варианта: у каждого варианта в VARIANTS свои экраны, комментарии нумеруются внутри варианта.\n' : '.\n'),
+    mdTheme: (dark) => `Тема: ${dark ? 'тёмная' : 'светлая'}`, mdNote: (n) => `пояснение ${n}`,
+    mdSelector: 'Селектор в #view', mdAttrs: 'Атрибуты', mdWhere: 'Где',
+    cmPlaceholder: 'Что поправить?', cmKeys: (key, ok) => `${key} — ${ok.toLowerCase()}, Esc — отмена`,
+    cancel: 'Отмена', save: 'Сохранить', edit: 'Изменить', del: 'Удалить', no: 'Нет', add: 'Добавить',
+    clearAsk: (n, v) => `Удалить <b>все ${n}</b>${v ? ` в варианте ${v}` : ''}?`,
+    addTitle: 'Выбрать место на экране (или Alt+клик)',
+    copyTitle: (multi) => `Markdown для агента: экран, элемент, селектор, текст${multi ? ' — все варианты' : ''}`,
+    copied: 'Скопировано', copyAll: 'Копировать все', clearAll: 'Удалить все',
+    cmtsEmpty: (alt) => `<kbd>${alt}</kbd>+клик по любому месту экрана — оставить комментарий. Или «Добавить» и клик.`,
+    otherScreens: 'На других экранах',
+  },
+};
+const tr = (key, ...args) => { const s = I18N[LANG][key] ?? I18N.en[key] ?? key; return typeof s === 'function' ? s(...args) : s; };
+/* design variants: each has its own STEPS, NOTES, VIEWS, ACTIONS, LINKS, S (on top of the shared S) and url — anything missing comes from the shared ones.
+   Without VARIANTS the prototype is a single variant. V is the current variant; switches (SWITCHES) and the navigation history are shared */
+const VS = (typeof VARIANTS !== 'undefined' && VARIANTS.length ? VARIANTS : [{ id: '' }]).map((v, i) => {
+  const s = clone({ ...S, ...(v.S || {}), sw: { ...(S.sw || {}), ...(v.S?.sw || {}) } });
+  SWITCHES.forEach(sw => { if (!sw.options.includes(s.sw[sw.id])) s.sw[sw.id] = sw.options[0]; });  // not set → first option
+  const x = { id: String(v.id ?? ''), key: String.fromCharCode(65 + i), title: v.title || '', text: v.text || '', url: v.url,
+    STEPS: v.STEPS || STEPS, NOTES: v.NOTES || NOTES, VIEWS: v.VIEWS || VIEWS, ACTIONS: v.ACTIONS || ACTIONS,
+    LINKS: v.LINKS || (typeof LINKS !== 'undefined' ? LINKS : []), last: null, mapv: null };
+  const st = x.STEPS.find(t => t.id === s.step) || x.STEPS[0];
+  if (!st.states.some(t => t.id === s.state)) s.state = st.states[0].id;
+  s.step = st.id; x.S_INIT = s;
+  return x;
+});
+let V = VS[0];
+const multi = () => VS.length > 1;
+const variantOf = (id) => VS.find(v => v.id === id) || VS[0];
+const resetS = (src) => { Object.keys(S).forEach(k => delete S[k]); Object.assign(S, clone(src)); };
+const stepOf = (id, v = V) => v.STEPS.find(s => s.id === id);
+const stateOf = (step, id, v = V) => stepOf(step, v)?.states.find(s => s.id === id);
+const whereOf = (step, state, v = V) => `${stepOf(step, v)?.title ?? step}${state ? ' · ' + (stateOf(step, state, v)?.title ?? state) : ''}`;
+const varName = (v = V) => `${v.key}${v.title ? ' · ' + v.title : ''}`;
+const TOAST_ICONS = { success: 'check-circle', error: 'alert-circle', warning: 'alert-triangle', theme: 'info', contrast: 'info' };
+let pinned = null;
+
+function goto(step, state, patch) {
+  const st = stepOf(step) || V.STEPS[0];
+  S.step = st.id;
+  S.state = stateOf(st.id, state) ? state : st.states[0].id;
+  S.menu = null;
+  if (patch) Object.assign(S, patch);
+  render();
+  return false;
+}
+/* open a state "from scratch", as if by a link: S = initial S + the state's seed, switches are kept.
+   Used by the popover, the hash, the screen map, a click on a note, ←/→ and protoCheck. goto() inside the flow doesn't reset S. */
+function openState(step, state, sw = S.sw) {
+  const st = stepOf(step) || V.STEPS[0], ss = stateOf(st.id, state) || st.states[0];
+  resetS({ ...V.S_INIT, sw: { ...V.S_INIT.sw, ...sw } });
+  return goto(st.id, ss.id, ss.seed && clone(ss.seed));
+}
+function setSwitch(id, val) { S.sw[id] = val; render(); }
+/* switch the current variant without rendering: a variant remembers its last screen and map zoom */
+function useVariant(v) {
+  if (!v || v === V) return;
+  Object.assign(V, { last: clone(S), mapv: { ...MAPV }, mapSeen });
+  V = v;
+  Object.assign(MAPV, V.mapv || { x: 0, y: 0, z: 1 }); mapSeen = !!V.mapSeen;
+  pinned = null; Object.assign(CM, { draft: null, editing: null, confirmClear: false });
+}
+/* pick a variant: its last screen (or the entry), switches are kept; a new history entry */
+function setVariant(id) {
+  const v = variantOf(id); if (v === V) return;
+  const sw = { ...S.sw };
+  useVariant(v);
+  if (V.last) { resetS({ ...V.last, sw, menu: null }); render(); } else openState(V.S_INIT.step, V.S_INIT.state, sw);
+}
+
+function render() {
+  const app = $('#app'), view = $('#view');
+  const scrolls = {};
+  $$('[data-scroll]', view).forEach(el => { scrolls[el.dataset.scroll] = el.scrollTop; });
+  const active = document.activeElement, model = view.contains(active) ? active.dataset.model : null;
+  const caret = model ? [active.selectionStart, active.selectionEnd] : null;
+  const fn = V.VIEWS[S.step] || (() => `<div class="k-empty"><div class="k-empty__title">${tr('noView', esc(S.step))}</div></div>`);
+  view.innerHTML = fn(S);
+  $$('.k-overlay', view).at(-1)?.classList.add('is-top');  // the top overlay is the last one in the DOM; markers and highlighting only in it
+  $$('[data-scroll]', view).forEach(el => { if (el.dataset.scroll in scrolls) el.scrollTop = scrolls[el.dataset.scroll]; });
+  /* focus: stays in the data-model field across re-renders; S.focus = 'field' — focus it once (for example, a field with an error) */
+  const want = S.focus || model; S.focus = null;
+  const field = want && $(`[data-model="${CSS.escape(want)}"]`, view);
+  if (field) { field.focus({ preventScroll: true }); if (want === model && caret[0] != null) try { field.setSelectionRange(...caret); } catch (e) {} }
+  renderDeck(); renderNotes(); renderCmts(); renderMap(); syncHash(); applyPin();
+  if (HINT.held) showHints();
+}
+
+function toast(title, opts = {}) {
+  const kind = opts.kind || 'success';
+  const el = document.createElement('div');
+  el.className = `k-toast k-toast--${kind}`;
+  el.innerHTML = `${icon(TOAST_ICONS[kind] || 'info')}<div class="k-toast__body"><div class="k-toast__title">${esc(title)}</div>${opts.text ? `<div class="k-toast__text">${esc(opts.text)}</div>` : ''}</div><button class="k-icon-btn k-icon-btn--compact" data-act="toast:close">${icon('x')}</button>`;
+  $('#toasts').appendChild(el);
+  setTimeout(() => el.remove(), opts.ms || 4000);
+}
+
+function renderDeck() {
+  $('#deckTitle').textContent = PROTO.title; document.title = PROTO.title + (multi() ? ' — ' + varName() : '');
+  $('#deckVars').hidden = !multi();
+  $('#deckVars').innerHTML = multi() ? VS.map(v => `<button class="deck__var${v === V ? ' is-current' : ''}" data-act="deck:variant" data-v="${esc(v.id)}" title="${esc(tr('variantTip', varName(v) + (v.text ? ' — ' + v.text.replace(/<[^>]+>/g, '') : ''), VS.indexOf(v) + 1))}"><span class="deck__var-k">${v.key}</span>${v.title ? `<span class="deck__var-t">${esc(v.title)}</span>` : ''}</button>`).join('') : '';
+  const st = stepOf(S.step), ss = stateOf(S.step, S.state);
+  $('#deckState').innerHTML = `<b>${esc(st.title)}</b><span class="sep">·</span>${esc(ss.title)}${icon('chevron-down')}`;
+  $('#deckNotes').classList.toggle('is-on', panelOf() === 'notes');
+  $('#deckCmts').innerHTML = `${icon('message')}${tr('comments')}${cmList().length ? `<span class="deck__count">${cmList().length}</span>` : ''}`;
+  $('#deckCmts').classList.toggle('is-on', panelOf() === 'cmts');
+  $('#deckMap').hidden = !hasMap(); $('#deckMap').classList.toggle('is-on', mapOn());
+  $('#deckTheme').innerHTML = icon($('#app').classList.contains('kbq-dark') ? 'moon' : 'sun');
+  $('#deckOpts').classList.toggle('is-on', !$('#deckOptsPop').hidden);
+  $('#deckOptsPop').innerHTML = `<label class="deck__chk"><input type="checkbox" id="optHints"${HINT.on ? ' checked' : ''}><span>${tr('hintsOpt')}
+    <span class="deck__chk-sub">${tr('hintsSub', CM_MAC ? '⌘ Cmd' : 'Ctrl')}</span></span></label>`;
+  $('.browser').classList.toggle('is-dark', $('#app').classList.contains('kbq-dark'));
+  $('#browserUrl').textContent = (u => typeof u === 'function' ? u(S) : (u || 'app.local/'))(V.url ?? PROTO.url);
+  $('#deckPop').innerHTML =
+    `<div class="deck__cols">${V.STEPS.map(step => `<div class="deck__col"><div class="deck__col-title">${esc(step.title)}</div>${step.states.map(s =>
+      `<button class="deck__opt ${step.id === S.step && s.id === S.state ? 'is-current' : ''}" data-act="deck:goto" data-step="${step.id}" data-state="${s.id}">${esc(s.title)}</button>`).join('')}</div>`).join('')}</div>` +
+    (SWITCHES.length ? `<div class="deck__sw">${SWITCHES.map(sw => `<div class="deck__sw-item">${esc(sw.title)}<span class="deck__seg">${sw.options.map(o =>
+      `<button class="${S.sw[sw.id] === o ? 'is-current' : ''}" data-act="deck:switch" data-sw="${sw.id}" data-val="${esc(o)}">${esc(o)}</button>`).join('')}</span></div>`).join('')}</div>` : '');
+}
+
+function renderNotes() {
+  const box = $('#notes');
+  const intro = multi() && V.text ? `<div class="notes__var"><b>${tr('variant', esc(varName()))}</b>${V.text}</div>` : '';  // what the variant is about — above its notes
+  if (!V.NOTES.length) { box.innerHTML = intro + `<div class="notes__empty">${tr('noNotes')}</div>`; return; }
+  box.innerHTML = intro + V.NOTES.map(n => {
+    const here = targetsOf(n.id).length > 0;
+    const where = n.step ? whereOf(n.step, n.state) : '';
+    return `<article class="note ${here ? '' : 'is-away'}" data-note-id="${n.id}" data-act="note:open">
+      <div class="note__head"><span class="note__n">${n.id}</span><h3 class="note__title">${esc(n.title)}</h3></div>
+      <div class="note__text">${n.text || ''}${n.try ? `<p><b>${tr('tryIt')}</b> ${esc(n.try)}</p>` : ''}</div>
+      ${!here && where ? `<span class="note__where">${icon('arrow-right')}${esc(where)}</span>` : ''}
+    </article>`;
+  }).join('');
+}
+
+/* Screen map: columns are steps, cards are states (snapshot thumbnails), arrows are transitions. Drawn instead of the stage; the hash gets ?map.
+   Transitions are found automatically: on every screen (opened directly, with the current switches) we take the data-act/data-live buttons —
+   in the top overlay if there is one, and in every open menu — and see where they lead: data-goto or goto()/openState() in the ACTIONS code.
+   Disabled elements lead nowhere. Whatever can't be found this way comes from LINKS. */
+const SHOT_W = 1280, SHOT_H = 800;  // the thumbnail "screen", 16:10
+const allStates = (v = V) => v.STEPS.flatMap(st => st.states.map(ss => `${st.id}/${ss.id}`));
+const hasMap = (v = V) => allStates(v).length > 1;
+const mapOn = () => document.body.classList.contains('map-on');
+function shotHtml(step, state, extra) {  // screen = a state opened directly (initial S + seed), with the current switches
+  const keep = clone(S), seed = stateOf(step, state)?.seed;
+  resetS({ ...V.S_INIT, sw: keep.sw, step, state, ...(seed || {}), ...(extra || {}) });
+  let html = '';
+  try { html = (V.VIEWS[step] || (() => ''))(S); } catch (e) { console.warn('Screen map: screen failed to render', `${step}/${state}`, e); }
+  resetS(keep);
+  return html;
+}
+/* a thumbnail is an image (SVG with foreignObject: page CSS + icons + screen markup), not live DOM:
+   dozens of live screens on the map make panning and zooming janky. Snapshots are cached by theme and markup */
+const SHOTS = new Map();
+let shotHead = null;
+function shotSrc(theme, html) {
+  const key = theme + '\n' + html;
+  if (SHOTS.has(key)) return SHOTS.get(key);
+  const ser = new XMLSerializer();
+  shotHead ??= `<style>${$$('style').map(s => s.textContent).join('\n').replace(/&/g, '&amp;').replace(/</g, '&lt;')}</style>` +
+    `<svg xmlns="http://www.w3.org/2000/svg" style="display:none">${$$('symbol').map(s => ser.serializeToString(s)).join('')}</svg>`;
+  const t = document.createElement('template');
+  t.innerHTML = `<div class="map__frame app ${theme}" style="width:${SHOT_W}px;height:${SHOT_H}px"><div class="app-view">${html}</div></div>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SHOT_W}" height="${SHOT_H}"><foreignObject width="100%" height="100%">` +
+    `<div xmlns="http://www.w3.org/1999/xhtml">${shotHead}${ser.serializeToString(t.content.firstElementChild)}</div></foreignObject></svg>`;
+  const src = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+  SHOTS.set(key, src);
+  return src;
+}
+function splitArgs(src, i) {  // top-level call arguments, starting right after "("
+  const args = []; let depth = 0, q = null, cur = '';
+  for (; i < src.length; i++) {
+    const c = src[i];
+    if (q) { cur += c; if (c === '\\') cur += src[++i] ?? ''; else if (c === q) q = null; continue; }
+    if (c === '"' || c === "'" || c === '`') q = c;
+    else if ('([{'.includes(c)) depth++;
+    else if (')]}'.includes(c)) { if (!depth) break; depth--; }
+    else if (c === ',' && !depth) { args.push(cur.trim()); cur = ''; continue; }
+    cur += c;
+  }
+  args.push(cur.trim());
+  return args;
+}
+const LIT = /^(['"`])([\w-]+)\1$/;
+/* goto()/openState() calls in a function body: the step as a string or S.step, the state as a string or a condition of strings */
+function gotoCalls(fn) {
+  const src = String(fn);
+  return [...src.matchAll(/\b(?:goto|openState)\s*\(/g)].map(m => splitArgs(src, m.index + m[0].length));
+}
+const ACT_TARGETS = new Map();  // ACTIONS don't change — parsing an action's code is cached (the map makes tens of thousands of calls)
+function actTargets(name, step, seen) {  // where ACTIONS[name] leads (including calls to other ACTIONS)
+  if (!seen) {
+    const key = V.id + '|' + name + '|' + step;
+    if (!ACT_TARGETS.has(key)) ACT_TARGETS.set(key, actTargets(name, step, new Set()));
+    return ACT_TARGETS.get(key);
+  }
+  const fn = V.ACTIONS[name]; if (typeof fn !== 'function' || seen.has(name)) return [];
+  seen.add(name);
+  const out = [];
+  gotoCalls(fn).forEach(([a, b]) => {
+    const st = a === 'S.step' ? step : LIT.exec(a)?.[2];
+    if (!stepOf(st)) return;
+    const lits = (src) => [...src.matchAll(/(['"`])([\w-]+)\1/g)].map(x => x[2]).filter(id => stateOf(st, id));
+    const ids = !b ? [stepOf(st).states[0].id] : lits(b).length ? lits(b) : lits(String(fn));  // state in a variable → all of the step's states mentioned in the action
+    ids.forEach(id => out.push(`${st}/${id}`));
+  });
+  for (const m of String(fn).matchAll(/\b[A-Z_]*ACTIONS\w*(?:\.([\w$]+)|\[\s*(['"`])([\w-]+)\2\s*\])/g)) out.push(...actTargets(m[1] || m[3], step, seen));
+  return out;
+}
+const gotoTarget = (s) => { const [a, b] = String(s ?? '').split('/'); return stepOf(a) ? [`${a}/${stateOf(a, b) ? b : stepOf(a).states[0].id}`] : []; };
+function actLabel(el) {  // transition label: the element's first visible text, otherwise aria-label / title / icon
+  if (el.matches('input, textarea, select')) {
+    const p = (el.getAttribute('placeholder') || el.closest('.k-field')?.querySelector('.k-label')?.textContent || tr('field')).split(/[,.:;(—]/)[0].trim();
+    return tr('input', p.length > 20 ? p.slice(0, 19) + '…' : p);
+  }
+  const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement.closest('.marker, .k-tooltip') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  let t = '';
+  for (let n; !t && (n = w.nextNode());) t = n.textContent.replace(/\s+/g, ' ').trim();
+  const ic = el.querySelector('use')?.getAttribute('href')?.replace('#i-', '');
+  t ||= el.getAttribute('aria-label') || el.getAttribute('title') || ({ x: '✕', 'more-horizontal': '…', 'chevron-left': '←', 'arrow-left': '←' }[ic] ?? ic) || el.dataset.act || '';
+  return t.length > 32 ? t.slice(0, 31) + '…' : t;
+}
+function exitsOf(step, state, html) {  // [{ to: 'step/state', labels }] — unique targets, no self-loops
+  const from = `${step}/${state}`, found = [], keys = new Set();
+  const scan = (h) => {
+    const t = document.createElement('template'); t.innerHTML = h;
+    const scope = [...t.content.querySelectorAll('.k-overlay')].at(-1) || t.content;
+    scope.querySelectorAll('[data-act], [data-live]').forEach(el => {
+      if (el.closest('[disabled], .is-disabled, [aria-disabled="true"]')) return;
+      const act = el.dataset.act, live = el.dataset.live, label = actLabel(el);
+      const to = act === 'goto' ? gotoTarget(el.dataset.goto) : [...actTargets(act, step), ...(live ? actTargets(live, step) : [])];
+      to.forEach(k => { const key = `${k}|${act || live}|${label}`; if (k !== from && !keys.has(key)) { keys.add(key); found.push({ to: k, act: act || live, label }); } });
+    });
+    return scope;
+  };
+  const scope = scan(html);
+  new Set([...scope.querySelectorAll('[data-act="menu"][data-menu]')].filter(el => !el.closest('[disabled], .is-disabled')).map(el => el.dataset.menu))
+    .forEach(menu => scan(shotHtml(step, state, { menu })));
+  V.LINKS.filter(l => l.from === from).forEach(l => gotoTarget(l.to).forEach(k => k !== from && found.push({ to: k, act: 'LINKS', label: l.label || '' })));
+  const by = new Map();
+  found.forEach(f => {
+    if (!by.has(f.to)) by.set(f.to, new Map());
+    const acts = by.get(f.to); if (!acts.has(f.act)) acts.set(f.act, []);
+    if (f.label && !acts.get(f.act).includes(f.label)) acts.get(f.act).push(f.label);
+  });
+  const word = (s) => /\p{L}/u.test(s);
+  return [...by].map(([to, acts]) => ({ to, labels: [...new Set([...acts.values()].flatMap(l => l.length > 2 ? [`${l[0]} (+${l.length - 1})`] : l))].sort((a, b) => word(b) - word(a)) }));
+}
+let mapCache = null;  // screens depend only on the variant and the switches (VIEWS read S + constants) — computed once per set of switches
+function mapNodes() {
+  const sw = V.id + JSON.stringify(S.sw);
+  if (mapCache?.sw !== sw) mapCache = { sw, nodes: allStates().map(key => { const [step, state] = key.split('/'), html = shotHtml(step, state); return { key, step, state, html, exits: exitsOf(step, state, html) }; }) };
+  return mapCache.nodes;
+}
+/* map columns: the entry and states with no incoming transitions come first, then by the number of transitions from them;
+   whatever can't be reached from the entry becomes a separate branch from the first column. Within a column — STEPS order */
+function mapLayers(nodes) {
+  const byKey = new Map(nodes.map(x => [x.key, x])), rank = new Map(), into = new Set(nodes.flatMap(x => x.exits.map(e => e.to)));
+  const walk = (starts) => {
+    const q = starts.filter(k => byKey.has(k) && !rank.has(k));
+    q.forEach(k => rank.set(k, 0));
+    for (let i = 0; i < q.length; i++) byKey.get(q[i]).exits.forEach(({ to }) => { if (byKey.has(to) && !rank.has(to)) { rank.set(to, rank.get(q[i]) + 1); q.push(to); } });
+  };
+  walk([`${V.S_INIT.step}/${V.S_INIT.state}`, ...nodes.map(x => x.key).filter(k => !into.has(k))]);
+  nodes.forEach(x => walk([x.key]));
+  const cols = [];
+  nodes.forEach(x => (cols[rank.get(x.key)] ||= []).push(x));
+  return cols;
+}
+function renderMap() {
+  const box = $('#map');
+  if (!hasMap() || !mapOn()) { document.body.classList.remove('map-on'); box.innerHTML = ''; return; }
+  const theme = $('#app').classList.contains('kbq-dark') ? 'kbq-dark' : 'kbq-light';
+  const nodes = mapNodes();
+  let n = 0;
+  const exit = (x, e) => {
+    const [a, b] = e.to.split('/'), label = e.labels.join(', ') || tr('transition');
+    return `<li class="map__exit" data-act="deck:map-goto" data-step="${esc(a)}" data-state="${esc(b)}" data-edge="${n++}" title="${esc(`${label} → ${whereOf(a, b)}`)}">` +
+      `<span class="map__exit-label">${esc(label)}</span>${icon('arrow-right')}<span class="map__exit-to">${esc(a === x.step ? stateOf(a, b).title : whereOf(a, b))}</span></li>`;
+  };
+  box.innerHTML = `<div class="map__canvas"><svg class="map__edges"></svg>${mapLayers(nodes).map(col => `<section class="map__col">${col.map(x => {
+    const notes = V.NOTES.filter(nt => nt.step === x.step && (nt.state ?? stepOf(x.step).states[0].id) === x.state);
+    const cms = cmList().filter(c => c.at.step === x.step && c.at.state === x.state).length;
+    return `<div class="map__node${x.step === S.step && x.state === S.state ? ' is-current' : ''}" data-node="${esc(x.key)}">
+      <div class="map__head"><span class="map__title">${V.STEPS.length > 1 ? `<span class="map__step">${esc(stepOf(x.step).title)} · </span>` : ''}${esc(stateOf(x.step, x.state).title)}</span>${notes.map(nt => `<button class="map__note" data-act="deck:map-note" data-note-id="${nt.id}" title="${tr('noteN', nt.id, esc(nt.title))}">${nt.id}</button>`).join('')}${cms ? `<button class="map__cmts" data-act="deck:map-cmts" data-step="${esc(x.step)}" data-state="${esc(x.state)}" title="${tr('cmtsN', cms)}">${icon('message')}${cms}</button>` : ''}</div>
+      <div class="map__shot" data-act="deck:map-goto" data-step="${esc(x.step)}" data-state="${esc(x.state)}" title="${tr('openScreen')}"><img src="${shotSrc(theme, x.html)}" alt="" draggable="false"></div>
+      ${x.exits.length ? `<ul class="map__exits">${x.exits.map(e => exit(x, e)).join('')}</ul>` : ''}
+    </div>`;
+  }).join('')}</section>`).join('')}</div>
+    <div class="map__zoom">
+      <button class="deck__btn deck__btn--icon" data-act="deck:map-zoom" data-z="out" title="${tr('zoomOut')}"><svg class="ic"><use href="#i-minus"/></svg></button>
+      <button class="deck__btn map__zoom-val" data-act="deck:map-zoom" data-z="real" title="${tr('zoomReal')}">100%</button>
+      <button class="deck__btn deck__btn--icon" data-act="deck:map-zoom" data-z="in" title="${tr('zoomIn')}"><svg class="ic"><use href="#i-plus"/></svg></button>
+      <button class="deck__btn deck__btn--icon" data-act="deck:map-zoom" data-z="fit" title="${tr('zoomFit')}"><svg class="ic"><use href="#i-fit"/></svg></button>
+    </div>`;
+  if (!mapSeen) mapFit(); else mapApply();  // fit only the first time a variant's map opens — after that zoom and position are kept
+  mapSeen = true;
+  drawEdges();
+  document.fonts?.ready.then(() => { if (mapOn()) drawEdges(); });
+}
+/* map canvas: drag with the mouse, the wheel scrolls, Ctrl/⌘ + wheel and pinch zoom at the cursor;
+   + / − zoom, Shift+1 fits all, Shift+0 is 100% at the screen under the cursor (otherwise the current one) */
+const MAPV = { x: 0, y: 0, z: 1 }, MAP_ZS = [0.1, 0.15, 0.25, 0.33, 0.5, 0.67, 0.75, 1, 1.25, 1.5, 2];
+let mapPan = null, mapNoClick = false, mapHot = null, mapSeen = false;
+function mapApply() {
+  const cv = $('#map .map__canvas'); if (!cv) return;
+  cv.style.transform = `translate(${MAPV.x}px, ${MAPV.y}px) scale(${MAPV.z})`;
+  const v = $('#map .map__zoom-val'); if (v) v.textContent = Math.round(MAPV.z * 100) + '%';
+}
+function mapZoom(z, cx, cy) {  // cx, cy — the map point that stays in place (center by default)
+  const b = $('#map').getBoundingClientRect();
+  cx ??= b.width / 2; cy ??= b.height / 2;
+  z = Math.min(MAP_ZS.at(-1), Math.max(MAP_ZS[0], z));
+  MAPV.x = cx - (cx - MAPV.x) * z / MAPV.z; MAPV.y = cy - (cy - MAPV.y) * z / MAPV.z; MAPV.z = z;
+  mapApply();
+}
+const mapStep = (dir) => mapZoom(dir > 0 ? MAP_ZS.find(z => z > MAPV.z + 1e-3) ?? MAP_ZS.at(-1) : MAP_ZS.findLast(z => z < MAPV.z - 1e-3) ?? MAP_ZS[0]);
+function mapFit() {
+  const cv = $('#map .map__canvas'), b = $('#map').getBoundingClientRect(); if (!cv) return;
+  const z = Math.max(MAP_ZS[0], Math.min(1, b.width / cv.offsetWidth, (b.height - 48) / cv.offsetHeight));
+  Object.assign(MAPV, { z, x: (b.width - cv.offsetWidth * z) / 2, y: Math.max(0, (b.height - 48 - cv.offsetHeight * z) / 2) });
+  mapApply();
+}
+function mapReal() {
+  const cv = $('#map .map__canvas'); if (!cv) return;
+  const nd = (mapHot && cv.contains(mapHot) ? mapHot : null) || $('.map__node.is-current', cv) || $('.map__node', cv);
+  const b = $('#map').getBoundingClientRect(), o = cv.getBoundingClientRect(), r = nd.getBoundingClientRect();
+  const x = (r.left - o.left) / MAPV.z, y = (r.top - o.top) / MAPV.z, w = r.width / MAPV.z, h = r.height / MAPV.z;
+  Object.assign(MAPV, { z: 1, x: b.width / 2 - x - w / 2, y: h > b.height - 48 ? 24 - y : (b.height - h) / 2 - y });
+  mapApply();
+}
+/* arrows: forward — from the card's right edge to the target's left edge, backward — from left to right, within a column — a loop on the right.
+   Arrows entering a card on the same side are spread over the thumbnail height in source order */
+function drawEdges() {
+  const cv = $('#map .map__canvas'); if (!cv) return;
+  const o = cv.getBoundingClientRect();
+  const z = MAPV.z, rect = (el) => { const r = el.getBoundingClientRect(); return { l: (r.left - o.left) / z, r: (r.right - o.left) / z, t: (r.top - o.top) / z, b: (r.bottom - o.top) / z }; };
+  const cols = new Map($$('.map__col', cv).flatMap((c, i) => $$('.map__node', c).map(nd => [nd.dataset.node, i]))), col = (key) => cols.get(key);
+  const node = (key) => $(`.map__node[data-node="${CSS.escape(key)}"]`, cv);
+  const edges = $$('.map__exit', cv).map(row => {
+    const fromEl = row.closest('.map__node'), from = fromEl.dataset.node, to = `${row.dataset.step}/${row.dataset.state}`;
+    const dc = col(to) - col(from), f = rect(fromEl), r = rect(row);
+    return { id: row.dataset.edge, from, to, dc, x1: dc < 0 ? f.l : f.r, y1: (r.t + r.b) / 2, side: dc > 0 ? 'l' : 'r' };
+  }).filter(e => node(e.to));
+  const groups = new Map();
+  edges.forEach(e => { const k = e.to + '|' + e.side; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(e); });
+  groups.forEach(list => {
+    const t = node(list[0].to), b = rect(t), s = rect($('.map__shot', t));
+    list.sort((a, c) => a.y1 - c.y1).forEach((e, i) => { e.x2 = e.side === 'l' ? b.l : b.r; e.y2 = s.t + (s.b - s.t) * (i + 1) / (list.length + 1); });
+  });
+  const svg = $('.map__edges', cv), hot = new Set($$('.map__edge.is-hot', svg).map(p => p.dataset.edge));  // hover highlighting survives a redraw
+  svg.setAttribute('width', cv.scrollWidth); svg.setAttribute('height', cv.scrollHeight);
+  svg.innerHTML = edges.sort((a, b) => hot.has(a.id) - hot.has(b.id)).map(e => {
+    const f = (v) => Math.round(v * 10) / 10;
+    let c1, c2;
+    if (!e.dc) { const k = 28 + Math.min(72, Math.abs(e.y2 - e.y1) / 4); c1 = e.x1 + k; c2 = e.x2 + k; }
+    else { const s = Math.sign(e.dc), h = Math.max(40, Math.abs(e.x2 - e.x1) / 2); c1 = e.x1 + s * h; c2 = e.x2 - s * h; }
+    // tangents at the ends are horizontal: s — where the line leaves the dot, d — where the arrowhead points (±1); parts don't overlap, so transparency is even
+    const s = Math.sign(c1 - e.x1), d = Math.sign(e.x2 - c2);
+    const cap = `M${f(e.x1 - 2.4)} ${f(e.y1)}a2.4 2.4 0 1 0 4.8 0a2.4 2.4 0 1 0 -4.8 0ZM${f(e.x2)} ${f(e.y2)}l${f(-7.2 * d)} -3.6v7.2Z`;
+    return `<g class="map__edge${hot.has(e.id) ? ' is-hot' : ''}" data-edge="${e.id}" data-from="${esc(e.from)}" data-to="${esc(e.to)}">` +
+      `<path class="map__line" d="M${f(e.x1 + 2.4 * s)} ${f(e.y1)}C${f(c1)} ${f(e.y1)} ${f(c2)} ${f(e.y2)} ${f(e.x2 - 7.2 * d)} ${f(e.y2)}"/><path class="map__cap" d="${cap}"/></g>`;
+  }).join('');
+}
+/* hover: on a card — all its transitions, on a transition line — just that one */
+function mapHover(e) {
+  const map = $('#map'), row = e.target.closest?.('.map__exit'), nd = e.target.closest?.('.map__node');
+  mapHot = nd || null;
+  if (mapPan?.moved) return;
+  $$('.is-hot', map).forEach(el => el.classList.remove('is-hot'));
+  map.classList.toggle('is-focus', !!nd);
+  if (!nd) return;
+  nd.classList.add('is-hot');
+  const key = nd.dataset.node, svg = $('.map__edges', map);
+  $$('.map__edge', map).filter(p => row ? p.dataset.edge === row.dataset.edge : p.dataset.from === key || p.dataset.to === key).forEach(p => {
+    p.classList.add('is-hot'); svg.append(p);
+    $(`.map__exit[data-edge="${p.dataset.edge}"]`, map)?.classList.add('is-hot');
+    [p.dataset.from, p.dataset.to].forEach(k => $(`.map__node[data-node="${CSS.escape(k)}"]`, map)?.classList.add('is-hot'));
+  });
+}
+
+/* navigation history = browser history: every change of screen, variant or switch, and entering/leaving the map, is a new entry,
+   so ←/→ in the header and the browser's back/forward follow the user's actions, not the STEPS order.
+   One history for all variants. An entry holds the variant and the screen's S — going back restores both the variant and the input. mode: push — new entry, replace — update the current one
+   (input in data-live, moving through history), off — leave history alone (protoCheck) */
+const nav = { i: 0, top: 0, mode: 'push', S: null, v: null };
+const NAV_KEY = 'proto.navTop:' + location.pathname;
+function navAs(mode, fn) { nav.mode = mode; try { return fn(); } finally { nav.mode = 'push'; } }
+function syncHash() {
+  if (nav.mode === 'off') return;
+  const q = [...(multi() ? [`variant=${encodeURIComponent(V.id)}`] : []), ...SWITCHES.map(sw => `${sw.id}=${encodeURIComponent(S.sw[sw.id])}`), ...(mapOn() ? ['map'] : [])].join('&');
+  const h = `#${S.step}/${S.state}${q ? '?' + q : ''}`;
+  if (location.hash !== h && nav.mode === 'push') {
+    history.replaceState({ i: nav.i, S: nav.S, v: nav.v }, '');  // the screen being left — with whatever was entered
+    nav.top = ++nav.i;
+    try { sessionStorage.setItem(NAV_KEY, nav.top); } catch (e) {}
+    history.pushState({ i: nav.i, S: clone(S), v: V.id }, '', h);
+  } else if (location.hash !== h || nav.mode === 'replace' || history.state?.i !== nav.i) history.replaceState({ i: nav.i, S: clone(S), v: V.id }, '', h);
+  nav.S = clone(S); nav.v = V.id;
+  $('#deckBack').disabled = nav.i <= 0;
+  $('#deckFwd').disabled = nav.i >= nav.top;
+}
+function readHash() {
+  const m = location.hash.slice(1).match(/^([^/?]+)(?:\/([^?]+))?(?:\?(.*))?$/);
+  if (!m) return null;
+  const q = new URLSearchParams(m[3] || ''), sw = { ...S.sw }, v = variantOf(q.get('variant'));
+  if (!stepOf(m[1], v)) return null;
+  q.forEach((v, k) => { const d = SWITCHES.find(s => s.id === k); if (d && d.options.includes(v)) sw[k] = v; });
+  document.body.classList.toggle('map-on', hasMap(v) && q.has('map'));
+  return { v, step: m[1], state: m[2], sw };
+}
+
+/* marker ↔ note highlighting */
+/* an overlay is open (modal, side panel, modal over a panel) — only the topmost one counts: markers and highlighting are in it */
+const targetsOf = (id) => $$(`.marker[data-note="${id}"], [data-anchor="note-${id}"]`, $('#view .k-overlay.is-top') || $('#view'));
+function setHot(id) {
+  $$('.is-hot').forEach(el => el.classList.remove('is-hot'));
+  if (id == null) id = pinned;
+  if (id == null) return;
+  targetsOf(id).forEach(el => el.classList.add('is-hot'));
+  const note = $(`.note[data-note-id="${id}"]`);
+  if (note) { note.classList.add('is-hot'); if (document.body.classList.contains('notes-on')) note.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+}
+function applyPin() {
+  $$('.is-pinned').forEach(el => el.classList.remove('is-pinned'));
+  if (pinned == null) return;
+  [...targetsOf(pinned), ...$$(`.note[data-note-id="${pinned}"]`)].forEach(el => el.classList.add('is-pinned'));
+  setHot(pinned);
+}
+function setPinned(id) { pinned = pinned === id ? null : id; applyPin(); }
+function revealNote(id) {
+  id = Number(id);
+  const n = V.NOTES.find(x => x.id === id); if (!n) return;
+  if (!targetsOf(id).length && n.step) openState(n.step, n.state);
+  const target = targetsOf(id).find(el => el.dataset.anchor) || targetsOf(id)[0];
+  pinned = id; applyPin();
+  if (!target) return;
+  target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  target.classList.remove('flash'); void target.offsetWidth; target.classList.add('flash');
+  setTimeout(() => target.classList.remove('flash'), 1500);
+}
+
+/* right column: notes or reviewer comments, only one of the two is visible */
+const PANELS = ['notes', 'cmts'];
+const panelOf = () => PANELS.find(p => document.body.classList.contains(p + '-on')) ?? null;
+function setPanel(p, save = true) {
+  PANELS.forEach(x => document.body.classList.toggle(x + '-on', x === p));
+  if (p !== 'cmts') Object.assign(CM, { draft: null, editing: null, picking: false, confirmClear: false });
+  if (save) store('proto.panel', p ?? 'none');
+}
+
+/* reviewer comments: Alt+click on the screen (or Add, then a click) places a dot on an element; the text is typed next to the dot.
+   A comment = screen (at) + element (el: a selector in #view and hints for the agent) + dot (pos: a fraction within the element's box,
+   fallback — a fraction of .app) + text. Stored in localStorage by file path; "Copy all" produces Markdown for the agent */
+const CM_KEY = 'proto.comments:' + location.pathname, CM_MAC = /Mac|iPhone|iPad/.test(navigator.platform);
+const CM = { list: (() => { try { return JSON.parse(load(CM_KEY)) || []; } catch (e) { return []; } })(), draft: null, editing: null, editText: '', hot: null, picking: false, confirmClear: false, copied: false };
+const CM_PICK = 'button,a,input,textarea,select,label,[data-act],[data-model],[data-goto],th,td,li,.k-tag,.k-badge,.k-alert,h1,h2,h3';
+const CM_MAX_H = 15 * 18 + 18;  // the textarea grows up to 15 lines, then scrolls
+const cmSave = () => store(CM_KEY, JSON.stringify(CM.list));
+/* each variant has its own comments and numbering; a comment without a variant (the prototype used to be single) belongs to the first */
+const cmV = (c) => VS.some(v => v.id === c.at.v) ? c.at.v : VS[0].id;
+const cmList = (v = V) => CM.list.filter(c => cmV(c) === v.id);
+const cmNum = (c) => cmList(variantOf(cmV(c))).indexOf(c) + 1;
+const cmHere = (c) => cmV(c) === V.id && c.at.step === S.step && c.at.state === S.state && !mapOn();
+const cmAt = () => ({ ...(multi() ? { v: V.id } : {}), step: S.step, state: S.state, sw: { ...S.sw }, theme: $('#app').classList.contains('kbq-dark') ? 'dark' : 'light' });
+const cmName = (d) => `${d.tag}${d.cls.length ? '.' + d.cls.join('.') : ''}${d.text ? ' ' + tr('quote', d.text.length > 40 ? d.text.slice(0, 40) + '…' : d.text) : ''}`;
+function cmTarget(t) {
+  if (!t?.closest?.('#view')) return null;
+  if (t.closest('svg')) t = t.closest('svg').parentElement;
+  const hit = t.closest(CM_PICK);
+  return hit && $('#view').contains(hit) ? hit : t;
+}
+/* the shortest selector unique within #view: a prototype attribute, otherwise a path upward until it's unique */
+function cmPath(el) {
+  const view = $('#view'), uniq = (s) => { try { return view.querySelectorAll(s).length === 1; } catch (e) { return false; } };
+  for (const a of ['data-model', 'data-act', 'data-goto', 'data-anchor']) { const v = el.getAttribute(a); if (v && uniq(`[${a}="${v}"]`)) return `[${a}="${v}"]`; }
+  const parts = [];
+  for (let n = el; n && n !== view; n = n.parentElement) {
+    const k = [...n.classList].find(c => c.startsWith('k-') && !c.includes('--')), a = ['data-act', 'data-model', 'data-anchor'].find(x => n.hasAttribute(x));
+    let seg = n.tagName.toLowerCase() + (a ? `[${a}="${n.getAttribute(a)}"]` : k ? '.' + k : '');
+    if ([...n.parentElement.children].filter(x => x.matches(seg)).length > 1) seg += `:nth-child(${[...n.parentElement.children].indexOf(n) + 1})`;
+    parts.unshift(seg);
+    if (uniq(parts.join(' > '))) return parts.join(' > ');
+  }
+  return parts.join(' > ');
+}
+function cmDescribe(el) {
+  const text = (el.matches('input,textarea') ? el.value || el.placeholder : el.innerText || el.getAttribute('title') || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+  const attrs = {};
+  ['data-act', 'data-goto', 'data-model', 'data-menu', 'data-field', 'data-value'].forEach(a => { const v = el.closest(`[${a}]`)?.getAttribute(a); if (v) attrs[a] = v; });
+  const note = el.closest('[data-anchor]')?.dataset.anchor.replace('note-', '');
+  const areaKey = [['.k-modal', 'areaModal'], ['.k-sidepanel', 'areaPanel'], ['.k-dropdown', 'areaMenu'], ['.k-topbar', 'areaTopbar'], ['table', 'areaTable'], ['.k-navbar', 'areaNav'], ['form,.k-form', 'areaForm']].find(([s]) => el.closest(s))?.[1];
+  const area = areaKey && tr(areaKey);  // stored as text in the shell language at creation
+  return { tag: el.tagName.toLowerCase(), cls: [...el.classList].filter(c => c.startsWith('k-')).slice(0, 3), text, attrs, note: note ? Number(note) : null, area: area ?? null, path: cmPath(el) };
+}
+/* a dot in .app coordinates: the element by selector + a fraction within its box; no element — fallback coordinates */
+function cmPoint(c) {
+  const app = $('#app').getBoundingClientRect();
+  let el = null; try { el = $('#view').querySelector(c.el.path); } catch (e) {}
+  if (el?.getClientRects().length) { const r = el.getBoundingClientRect(); return { x: r.left - app.left + r.width * c.pos.fx, y: r.top - app.top + r.height * c.pos.fy, el }; }
+  return { x: c.pos.ax * app.width, y: c.pos.ay * app.height, el: null };
+}
+
+function cmStart(e, el) {
+  const r = el.getBoundingClientRect(), app = $('#app').getBoundingClientRect();
+  setPanel('cmts');
+  CM.draft = { at: cmAt(), el: cmDescribe(el), pos: { fx: (e.clientX - r.left) / r.width, fy: (e.clientY - r.top) / r.height, ax: (e.clientX - app.left) / app.width, ay: (e.clientY - app.top) / app.height }, text: '' };
+  renderDeck(); renderCmts(); cmFocus();
+}
+function cmCommit(text) {
+  if (!text) return cmCancel();
+  CM.list.push({ id: Date.now().toString(36), ...CM.draft, text, created: new Date().toISOString() });
+  CM.draft = null; cmSave(); renderDeck(); renderCmts();
+}
+function cmCancel() { Object.assign(CM, { draft: null, editing: null, picking: false, confirmClear: false }); renderCmts(); }
+function cmFocus() { const t = $('[data-cm-input]'); if (t) { t.focus({ preventScroll: true }); t.setSelectionRange(t.value.length, t.value.length); } }
+function cmGrow(t) {
+  t.style.height = 'auto';
+  const h = t.scrollHeight + 2;
+  t.style.height = Math.min(h, CM_MAX_H) + 'px'; t.style.overflowY = h > CM_MAX_H ? 'auto' : 'hidden';
+}
+/* the input goes right of the dot, or left of it near the right edge; vertically it stays inside the frame */
+function cmPlace() {
+  const box = $('#cpins .ccompose'); if (!box || !CM.draft) return;
+  const p = cmPoint(CM.draft), W = $('#app').clientWidth, H = $('#app').clientHeight, w = box.offsetWidth, h = box.offsetHeight;
+  box.style.left = (p.x + 30 + w > W - 8 ? Math.max(8, p.x - w - 8) : p.x + 30) + 'px';
+  box.style.top = Math.max(8, Math.min(p.y - 22, H - h - 8)) + 'px';
+}
+function cmMove() {
+  $$('#cpins .cpin').forEach(pin => { const c = pin.dataset.cmId === 'draft' ? CM.draft : CM.list.find(x => x.id === pin.dataset.cmId), p = cmPoint(c); pin.style.left = p.x + 'px'; pin.style.top = p.y + 'px'; });
+  cmPlace();
+}
+function cmReveal(c) {
+  if (!cmHere(c)) { document.body.classList.remove('map-on'); openState(c.at.step, c.at.state, c.at.sw); }
+  CM.hot = c.id; renderCmts();
+  cmPoint(c).el?.scrollIntoView({ block: 'nearest' });
+  $(`.cmt[data-cm-id="${c.id}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  $(`.cpin[data-cm-id="${c.id}"]`)?.animate([{ transform: 'translate(0,-100%) scale(1.5)' }, { transform: 'translate(0,-100%) scale(1)' }], { duration: 500, easing: 'ease-out' });
+}
+
+/* Markdown for the agent: file, screens (the hash opens the screen with the same switches), elements with selectors */
+function cmHash(at) {
+  const q = (multi() ? [`variant=${encodeURIComponent(cmV({ at }))}`] : []).concat(SWITCHES.filter(sw => at.sw[sw.id] != null).map(sw => `${sw.id}=${at.sw[sw.id]}`)).join('&');
+  return `#${at.step}/${at.state}${q ? '?' + q : ''}`;
+}
+function cmExport() {
+  const file = location.protocol === 'file:' ? decodeURIComponent(location.pathname) : location.origin + location.pathname;
+  const groups = new Map();
+  VS.flatMap(v => cmList(v)).forEach(c => { const k = cmHash(c.at) + ' ' + c.at.theme; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(c); });
+  let out = tr('mdHead', PROTO.title, file, CM.list.length, multi());
+  groups.forEach(list => {
+    const at = list[0].at, v = variantOf(cmV(list[0]));
+    const ctx = [...SWITCHES.filter(sw => at.sw[sw.id] != null).map(sw => `${sw.title}: ${at.sw[sw.id]}`), tr('mdTheme', at.theme === 'dark')];
+    out += `\n## ${multi() ? `${tr('variant', varName(v))} → ` : ''}${whereOf(at.step, at.state, v)} — \`${cmHash(at)}\`\n${ctx.join(' · ')}\n`;
+    list.forEach(c => {
+      const a = Object.entries(c.el.attrs).map(([k, v]) => `\`${k}="${v}"\``);
+      if (c.el.note) a.push(tr('mdNote', c.el.note));
+      out += `\n### ${cmNum(c)}. ${cmName(c.el)}\n${c.text.split('\n').map(l => '> ' + l).join('\n')}\n\n` +
+        `- ${tr('mdSelector')}: \`${c.el.path}\`\n` + (a.length ? `- ${tr('mdAttrs')}: ${a.join(', ')}\n` : '') + (c.el.area ? `- ${tr('mdWhere')}: ${c.el.area}\n` : '');
+    });
+  });
+  return out;
+}
+async function cmCopy() {
+  const text = cmExport();
+  try { await navigator.clipboard.writeText(text); } catch (e) { const t = document.createElement('textarea'); t.value = text; document.body.append(t); t.select(); document.execCommand('copy'); t.remove(); }
+  CM.copied = true; renderCmts();
+  setTimeout(() => { CM.copied = false; renderCmts(); }, 1500);
+}
+
+function cmEditor(text, ok) {
+  return `<div class="cmt-edit"><textarea data-cm-input rows="3" placeholder="${tr('cmPlaceholder')}">${esc(text)}</textarea>
+    <div class="cmt-edit__keys">${tr('cmKeys', CM_MAC ? '⌘↵' : 'Ctrl+↵', ok)}</div>
+    <div class="cmt-edit__row"><button class="deck__btn cmt-edit__ok" data-act="cm:ok"${text.trim() ? '' : ' disabled'}>${ok}</button><button class="deck__btn" data-act="cm:cancel">${tr('cancel')}</button></div></div>`;
+}
+function cmCard(c) {
+  const away = !cmHere(c), editing = CM.editing === c.id;
+  return `<article class="cmt${away ? ' is-away' : ''}${CM.hot === c.id ? ' is-hot' : ''}${editing ? ' is-editing' : ''}" data-cm-id="${c.id}"${editing ? '' : ' data-act="cm:open"'}>
+    <div class="cmt__head"><span class="cmt__n">${cmNum(c)}</span>${editing ? `<div class="cmt__body">${cmEditor(CM.editText, tr('save'))}</div>` : `<div class="cmt__text">${esc(c.text)}</div>`}</div>
+    ${away ? `<span class="cmt__where">${icon('arrow-right')}${esc(whereOf(c.at.step, c.at.state))}</span>` : ''}
+    ${editing ? '' : `<div class="cmt__acts"><button class="cmt__act" data-act="cm:edit" title="${tr('edit')}">${icon('edit')}</button><button class="cmt__act" data-act="cm:del" title="${tr('del')}">${icon('trash')}</button></div>`}
+  </article>`;
+}
+function renderCmts() {
+  if (CM.draft && !cmHere(CM.draft)) CM.draft = null;  // left the screen — the unfinished dot disappears
+  const n = cmList().length, act = document.activeElement;
+  const focus = act?.matches('[data-cm-input]') ? [act.closest('[data-cm-id]').dataset.cmId, act.selectionStart, act.selectionEnd] : null;
+  const bar = CM.confirmClear
+    ? `<div class="cmts__confirm">${tr('clearAsk', n, multi() ? esc(V.key) : '')}</div><button class="deck__btn" data-act="cm:clear-no">${tr('no')}</button><button class="deck__btn is-danger" data-act="cm:clear-yes">${tr('del')}</button>`
+    : `<button class="deck__btn${CM.picking ? ' is-on' : ''}" data-act="cm:add" title="${tr('addTitle')}">${icon('plus')}${tr('add')}</button>
+       <button class="deck__btn" data-act="cm:copy"${CM.list.length ? '' : ' disabled'} title="${tr('copyTitle', multi())}">${icon(CM.copied ? 'check' : 'copy')}${tr(CM.copied ? 'copied' : 'copyAll')}</button>
+       <span class="cmts__sp"></span>
+       <button class="deck__btn deck__btn--icon is-danger" data-act="cm:clear"${n ? '' : ' disabled'} title="${tr('clearAll')}">${icon('trash')}</button>`;
+  const here = cmList().filter(cmHere), away = cmList().filter(c => !cmHere(c));
+  const feed = !n ? `<div class="cmts__empty">${tr('cmtsEmpty', CM_MAC ? '⌥ Option' : 'Alt')}</div>`
+    : here.map(cmCard).join('') + (away.length ? `<div class="cmts__sep">${tr('otherScreens')}</div>${away.map(cmCard).join('')}` : '');
+  $('#cmts').innerHTML = `<div class="cmts__bar">${bar}</div>${feed}`;
+  $('#cpins').innerHTML = here.map(c => `<span class="cpin${CM.hot === c.id ? ' is-hot' : ''}" data-act="cm:open" data-cm-id="${c.id}" title="${esc(c.text)}">${cmNum(c)}</span>`).join('') +
+    (CM.draft ? `<span class="cpin is-draft" data-cm-id="draft">${n + 1}</span><div class="ccompose" data-cm-id="draft"><div class="ccompose__el">${esc(cmName(CM.draft.el))}</div>${cmEditor(CM.draft.text, tr('add'))}</div>` : '') +
+    '<div class="cbox" id="cbox" hidden><span class="cbox__label"></span></div>';
+  $('#cmHint').hidden = !CM.picking; document.body.classList.toggle('cm-picking', CM.picking);
+  $$('[data-cm-input]').forEach(cmGrow); cmMove();
+  const t = focus && $(`[data-cm-id="${focus[0]}"] [data-cm-input]`);
+  if (t) { t.focus(); t.setSelectionRange(focus[1], focus[2]); }
+}
+function cmAction(act, el) {
+  const id = el.closest('[data-cm-id]')?.dataset.cmId, c = CM.list.find(x => x.id === id);
+  if (act === 'copy') return cmCopy();
+  if (act === 'cancel') return cmCancel();
+  if (act === 'open') return cmReveal(c);
+  if (act === 'ok' && id === 'draft') return cmCommit(CM.draft.text.trim());
+  if (act === 'ok') { if (CM.editText.trim()) c.text = CM.editText.trim(); CM.editing = null; cmSave(); }
+  if (act === 'add') Object.assign(CM, { picking: !CM.picking, draft: null, editing: null, confirmClear: false });
+  if (act === 'clear' || act === 'clear-no') CM.confirmClear = act === 'clear';
+  if (act === 'clear-yes') { CM.list = CM.list.filter(x => cmV(x) !== V.id); CM.confirmClear = false; cmSave(); }
+  if (act === 'edit') Object.assign(CM, { editing: id, editText: c.text, draft: null });
+  if (act === 'del') { CM.list = CM.list.filter(x => x !== c); cmSave(); }
+  renderDeck(); renderCmts();
+  if (act === 'edit') cmFocus();
+}
+let cmBoxEl = null, cmLast = null;
+function cmBox(el) {
+  const box = $('#cbox'); if (!box) return;
+  box.hidden = !el; if (!el || (el === cmBoxEl && box.style.width)) return;
+  cmBoxEl = el;
+  const r = el.getBoundingClientRect(), app = $('#app').getBoundingClientRect();
+  Object.assign(box.style, { left: r.left - app.left + 'px', top: r.top - app.top + 'px', width: r.width + 'px', height: r.height + 'px' });
+  box.firstElementChild.textContent = cmName(cmDescribe(el));
+}
+
+/* what is clickable: a click outside anything clickable flashes for half a second (a checkbox in the header settings); holding Cmd/Ctrl shows it for as long as it's held, always */
+const HINT_SEL = '[data-act],[data-goto],[data-model],a[href],input:not([type="hidden"]),textarea,select,[contenteditable]';
+const HINT_OFF = '[disabled], .is-disabled, [aria-disabled="true"]';
+const HINT = { on: load('proto.hints') !== 'off', held: false, timer: null };
+/* the element's box clipped by scrollable ancestors (otherwise the highlight of a row scrolled past the edge spills over its neighbors) */
+function hintRect(el) {
+  if (el.checkVisibility ? !el.checkVisibility({ visibilityProperty: true, opacityProperty: true }) : !el.getClientRects().length) return null;
+  let { left, top, right, bottom } = el.getBoundingClientRect();
+  for (let p = el.parentElement; p && p.id !== 'app'; p = p.parentElement) {
+    const s = getComputedStyle(p); if (s.overflowX === 'visible' && s.overflowY === 'visible') continue;
+    const r = p.getBoundingClientRect();
+    left = Math.max(left, r.left); top = Math.max(top, r.top); right = Math.min(right, r.right); bottom = Math.min(bottom, r.bottom);
+  }
+  return right - left > 1 && bottom - top > 1 ? { left, top, right, bottom } : null;
+}
+function showHints(flash) {
+  const box = $('#chints'), app = $('#app').getBoundingClientRect();
+  const scope = [$('#view .k-overlay.is-top') || $('#view'), $('#toasts')];  // nothing under an overlay is clickable
+  clearTimeout(HINT.timer);
+  box.innerHTML = scope.flatMap(s => $$(HINT_SEL, s)).filter(el => !el.closest(HINT_OFF)).map(hintRect).filter(Boolean)
+    .map(r => `<i class="chint" style="left:${r.left - app.left}px;top:${r.top - app.top}px;width:${r.right - r.left}px;height:${r.bottom - r.top}px"></i>`).join('');
+  box.classList.remove('is-out');
+  if (flash) HINT.timer = setTimeout(hideHints, 500);
+}
+function hideHints(now) { clearTimeout(HINT.timer); if (now) $('#chints').innerHTML = ''; $('#chints').classList.add('is-out'); }
+function releaseHints(now) { if (HINT.held) { HINT.held = false; hideHints(now); } }
+
+function deckAction(act, el) {
+  const pop = $('#deckPop'), app = $('#app');
+  if (act === 'states') { pop.hidden = !pop.hidden; $('#deckOptsPop').hidden = true; renderDeck(); return; }
+  if (act === 'opts') { $('#deckOptsPop').hidden = !$('#deckOptsPop').hidden; pop.hidden = true; renderDeck(); return; }
+  if (act === 'goto') { pop.hidden = true; document.body.classList.remove('map-on'); openState(el.dataset.step, el.dataset.state); return; }
+  if (act === 'switch') { setSwitch(el.dataset.sw, el.dataset.val); return; }
+  if (act === 'variant') { pop.hidden = true; setVariant(el.dataset.v); return; }
+  if (act === 'map') { document.body.classList.toggle('map-on'); render(); return; }
+  if (act === 'back') { history.back(); return; }
+  if (act === 'fwd') { history.forward(); return; }
+  if (act === 'map-zoom') { ({ in: () => mapStep(1), out: () => mapStep(-1), fit: mapFit, real: mapReal })[el.dataset.z](); return; }
+  if (act === 'map-goto') { document.body.classList.remove('map-on'); openState(el.dataset.step, el.dataset.state); return; }
+  if (act === 'map-note') { document.body.classList.remove('map-on'); setPanel('notes'); render(); revealNote(el.dataset.noteId); return; }
+  if (act === 'map-cmts') { document.body.classList.remove('map-on'); setPanel('cmts'); openState(el.dataset.step, el.dataset.state); return; }
+  if ((act === 'notes' || act === 'cmts') && mapOn()) { document.body.classList.remove('map-on'); setPanel(act); render(); return; }
+  if (act === 'notes' || act === 'cmts') { setPanel(panelOf() === act ? null : act); renderDeck(); renderCmts(); return; }
+  if (act === 'theme') { const dark = !app.classList.contains('kbq-dark'); app.classList.toggle('kbq-dark', dark); app.classList.toggle('kbq-light', !dark); store('proto.theme', dark ? 'dark' : 'light'); renderDeck(); renderMap(); return; }
+}
+function store(k, v) { try { v === undefined ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} }
+function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+
+/* events */
+document.addEventListener('click', (e) => {
+  const m = e.target.closest('#view .marker');
+  if (m) { e.stopPropagation(); setPinned(Number(m.dataset.note)); }
+}, true);
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#deckPop, #deckState')) $('#deckPop').hidden = true;
+  if (!e.target.closest('#deckOptsPop, #deckOpts') && !$('#deckOptsPop').hidden) { $('#deckOptsPop').hidden = true; renderDeck(); }
+  const el = e.target.closest('[data-act]');
+  if (!el) {
+    if (pinned != null && !e.target.closest('.notes')) { pinned = null; applyPin(); }
+    if (S.menu != null && e.target.closest('#view') && !e.target.closest('.k-float')) { S.menu = null; render(); }
+    return;
+  }
+  const act = el.dataset.act;
+  if (act.startsWith('deck:')) return deckAction(act.slice(5), el);
+  if (act.startsWith('cm:')) return cmAction(act.slice(3), el);
+  if (act === 'note:open') return revealNote(el.dataset.noteId);
+  if (act === 'toast:close') return el.closest('.k-toast').remove();
+  if (act === 'goto') { const [st, ss] = (el.dataset.goto || '').split('/'); return goto(st, ss); }
+  if (act === 'close') { S.menu = null; return render(); }
+  if (act === 'menu') { S.menu = S.menu === el.dataset.menu ? null : el.dataset.menu; return render(); }
+  if (act === 'set') { S[el.dataset.field] = el.dataset.value; S.menu = null; return render(); }
+  const fn = V.ACTIONS[act];
+  if (!fn) return console.warn('No action:', act);
+  const menu = S.menu, res = fn(el, e);
+  /* an open menu closes on any other action and on a dropdown item (but not on a click inside a popover) */
+  const closeMenu = menu != null && S.menu === menu && (!el.closest('.k-float') || !!el.closest('.k-dropdown'));
+  if (closeMenu) S.menu = null;
+  if (res !== false || closeMenu) render();
+});
+document.addEventListener('mouseover', (e) => {
+  const t = e.target.closest('#view .marker, #view [data-anchor], .note');
+  if (!t) return;
+  setHot(t.dataset.note ?? t.dataset.noteId ?? t.dataset.anchor?.replace('note-', ''));
+});
+document.addEventListener('mouseout', (e) => { if (e.target.closest('#view .marker, #view [data-anchor], .note')) setHot(null); });
+/* comments: Alt+click and the Add mode are intercepted before the prototype's handlers */
+addEventListener('mousedown', (e) => { if ((e.altKey || CM.picking) && cmTarget(e.target)) e.preventDefault(); }, true);
+addEventListener('click', (e) => {
+  const t = (e.altKey || CM.picking) && cmTarget(e.target); if (!t) return;
+  e.preventDefault(); e.stopImmediatePropagation(); cmStart(e, t);
+}, true);
+addEventListener('mousemove', (e) => { cmLast = e.target; document.body.classList.toggle('cm-alt', e.altKey); cmBox(e.altKey || CM.picking ? cmTarget(e.target) : null); });
+addEventListener('keydown', (e) => { if (e.key === 'Alt') { document.body.classList.add('cm-alt'); cmBox(cmTarget(cmLast)); } });
+addEventListener('keyup', (e) => { if (e.key === 'Alt') { document.body.classList.remove('cm-alt'); if (!CM.picking) cmBox(null); } });
+addEventListener('blur', () => { document.body.classList.remove('cm-alt'); cmBox(null); });
+/* a click outside anything clickable (before the handlers: closing a menu is an action too); a comment's Alt+click doesn't get here */
+document.addEventListener('click', (e) => {
+  if (!HINT.on || mapOn() || e.metaKey || e.ctrlKey || S.menu != null || !e.target.closest('#app') || e.target.closest('#cpins, .marker') || String(getSelection())) return;
+  const hit = e.target.closest(HINT_SEL); if (hit && !hit.closest(HINT_OFF)) return;
+  setTimeout(() => showHints(true));
+}, true);
+/* Cmd/Ctrl — show right away and keep while held; on release it fades out; if a second key is pressed (⌘C, ⌘V…) it disappears instantly */
+addEventListener('keydown', (e) => {
+  if (e.key === (CM_MAC ? 'Meta' : 'Control')) { if (!e.repeat && !mapOn()) { HINT.held = true; showHints(); } return; }
+  releaseHints(true);
+}, true);
+addEventListener('keyup', (e) => { if (e.key === (CM_MAC ? 'Meta' : 'Control')) releaseHints(); });
+addEventListener('blur', () => releaseHints(true));
+$('#view').addEventListener('scroll', () => { if (HINT.held) showHints(); }, true);
+document.addEventListener('change', (e) => {
+  if (e.target.id !== 'optHints') return;
+  HINT.on = e.target.checked; store('proto.hints', HINT.on ? undefined : 'off');
+});
+document.addEventListener('input', (e) => {
+  const t = e.target; if (!t.matches('[data-cm-input]')) return;
+  if (t.closest('[data-cm-id]').dataset.cmId === 'draft') CM.draft.text = t.value; else CM.editText = t.value;
+  $('[data-act="cm:ok"]', t.closest('.cmt-edit')).disabled = !t.value.trim();
+  cmGrow(t); cmPlace();
+});
+document.addEventListener('mouseover', (e) => {
+  const id = e.target.closest?.('.cpin[data-cm-id], .cmt[data-cm-id]')?.dataset.cmId ?? null;
+  if (id === CM.hot) return;
+  CM.hot = id;
+  $$('.cpin.is-hot, .cmt.is-hot').forEach(x => x.classList.remove('is-hot'));
+  if (id) $$(`.cpin[data-cm-id="${id}"], .cmt[data-cm-id="${id}"]`).forEach(x => x.classList.add('is-hot'));
+});
+$('#view').addEventListener('scroll', cmMove, true);
+/* data-model="field" writes the value to S.field; data-live — re-render on every input (live search/filter);
+   data-live="name" — first ACTIONS.name(el, e), for example goto to "found / nothing found" (returning false skips the re-render) */
+document.addEventListener('input', (e) => {
+  const el = e.target.closest('[data-model]'); if (!el) return;
+  S[el.dataset.model] = el.value;
+  if (nav.S) nav.S[el.dataset.model] = el.value;
+  const live = el.dataset.live; if (live == null) return;
+  navAs('replace', () => { if (!live || !V.ACTIONS[live] || V.ACTIONS[live](el, e) !== false) render(); });
+});
+/* tip() stays inside the frame: on hover/focus the tooltip flips up/down and hugs the edge */
+function fitTip(t) {
+  const tt = t.querySelector(':scope > .k-tooltip'); if (!tt) return;
+  const box = $('#app').getBoundingClientRect(), c = tt.classList;
+  tt.style.display = 'block';
+  let r = tt.getBoundingClientRect();
+  if (r.top < box.top) c.remove('k-float--top'); else if (r.bottom > box.bottom) c.add('k-float--top');
+  r = tt.getBoundingClientRect();
+  if (r.right > box.right) { c.remove('k-float--center'); c.add('k-float--right'); } else if (r.left < box.left) c.remove('k-float--center', 'k-float--right');
+  tt.style.display = '';
+}
+['mouseover', 'focusin'].forEach(ev => document.addEventListener(ev, (e) => { const t = e.target.closest?.('#view .k-tip'); if (t) fitTip(t); }));
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && (CM.draft || CM.editing || CM.picking || CM.confirmClear)) { cmCancel(); return; }
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && e.target.matches('[data-cm-input]')) { e.preventDefault(); $('[data-act="cm:ok"]', e.target.closest('.cmt-edit')).click(); return; }
+  if (e.key === 'Escape') { $('#deckPop').hidden = true; $('#deckOptsPop').hidden = true; $('#deckOpts').classList.remove('is-on'); if (mapOn()) { document.body.classList.remove('map-on'); render(); return; } if (pinned != null) { pinned = null; applyPin(); } if (S.menu != null) { S.menu = null; render(); } return; }
+  if (e.target.closest('input,textarea,select,[contenteditable]') || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (mapOn()) {
+    if (e.shiftKey && e.code === 'Digit1') { e.preventDefault(); mapFit(); return; }
+    if (e.shiftKey && e.code === 'Digit0') { e.preventDefault(); mapReal(); return; }
+    if (['+', '=', 'NumpadAdd'].includes(e.key) || e.code === 'NumpadAdd') { e.preventDefault(); mapStep(1); return; }
+    if (['-', '_'].includes(e.key) || e.code === 'NumpadSubtract') { e.preventDefault(); mapStep(-1); return; }
+  }
+  if (multi() && /^[1-9]$/.test(e.key) && VS[e.key - 1]) { setVariant(VS[e.key - 1].id); return; }  // 1–9 — variant
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    const all = V.STEPS.flatMap(st => st.states.map(s => [st.id, s.id]));
+    const i = all.findIndex(([a, b]) => a === S.step && b === S.state);
+    const j = Math.min(all.length - 1, Math.max(0, i + (e.key === 'ArrowRight' ? 1 : -1)));
+    if (j !== i) openState(...all[j]);
+  }
+});
+/* Self-check: protoCheck() in the console → { ok, checked, problems, warnings }.
+   Opens every state directly (as if by a link): steps × states × switches × both themes. */
+function protoCheck() {
+  const app = $('#app'), view = $('#view'), body = document.body;
+  const keep = { V, S: clone(S), dark: app.classList.contains('kbq-dark'), map: body.classList.contains('map-on'), panel: panelOf(), pinned };
+  const problems = new Map(), warnings = new Map();
+  const add = (map, msg, where) => { if (!map.has(msg)) map.set(msg, []); if (where) map.get(msg).push(where); };
+  const P = (m, w) => add(problems, m, w), W = (m, w) => add(warnings, m, w);
+  const vat = () => multi() ? `variant ${V.key}` : undefined;  // where: the current variant
+  const setTheme = (dark) => { app.classList.toggle('kbq-dark', dark); app.classList.toggle('kbq-light', !dark); };
+  const COLOR = /:[^;{}]*?(#[0-9a-f]{3,8}\b|\brgba?\(|\bhsla?\()/gi;
+  const combos = SWITCHES.reduce((acc, sw) => acc.flatMap(c => sw.options.map(o => ({ ...c, [sw.id]: o }))), [{}]).slice(0, 64);
+  const seen = new Set(), renders = [], starts = [], errs = [], origErr = console.error;
+  const wide = innerWidth >= 1400;
+  const swKey = (sw, skip) => Object.entries(sw).filter(([k]) => k !== skip).map(e => e.join('=')).join('&');
+  let checked = 0;
+
+  /* static: shell, variants, PROTOTYPE block source */
+  if ($$('.deck > *').length !== 11 || $('#deckTitle').children.length) P('extra elements in the header — it holds only the title and the shell buttons');
+  if ($$('.stage > *').length !== 3) P("extra elements in .stage — don't touch the shell");
+  if (typeof VARIANTS !== 'undefined') {
+    if (VARIANTS.length === 1) W('VARIANTS has one variant — nothing to choose from: use 2–5 variants or none');
+    if (VARIANTS.length > 5) W(`${VARIANTS.length} variants — more than 5 are hard to compare, keep the 2–3 most different`);
+    if (multi()) VS.forEach((v, i) => {
+      if (!/^[\w-]+$/.test(v.id)) P(`VARIANTS[${i}]: id "${v.id}" — use a short Latin id (letters, digits, -, _)`);
+      else if (VS.findIndex(x => x.id === v.id) !== i) P(`duplicate variant id "${v.id}"`);
+      if (!v.title) W(`variant ${v.key} has no title — the header shows only its letter`);
+      if (!v.text) W(`variant ${v.key} has no text — the notes panel doesn't say what its idea is`);
+    });
+  }
+  const DEMO = ['Severity instead of priority', 'Condition in its own mono field'];
+  if (PROTO.title !== 'Correlation rules' && VS.some(v => v.NOTES.some(n => DEMO.includes(n.title)))) P('template demo notes are left over');
+  if (typeof CJM !== 'undefined') W('CJM is no longer needed — remove it: the screen map builds itself from STEPS and transitions');
+  const src = [...document.scripts].map(s => s.textContent).join('\n').split('RUNTIME — no need')[0];
+  if (/Date\.now\(|new Date\(\s*\)|Math\.random\(/.test(src)) W('Date.now() / new Date() / Math.random() — screens must be deterministic');
+  if (/\bS\.(step|state)\s*=[^=]/.test(src)) W('S.step/S.state are changed directly — transitions only via goto()');
+  const css5 = ($('style')?.textContent.split('5. PROTOTYPE STYLES')[1] || '').replace(/\/\*[\s\S]*?\*\//g, '');
+  const hard = css5.match(COLOR);
+  if (hard) P(`hard-coded colors in styles section 5 (${hard.slice(0, 3).map(s => s.replace(/^:\s*/, '').trim()).join(', ')}) — use var(--kbq-*)`);
+  if (!wide) W(`window is ${innerWidth}px — horizontal scroll is checked from 1400px`);
+
+  console.error = (...a) => { errs.push(a.map(String).join(' ')); origErr.apply(console, a); };
+  body.classList.remove('map-on'); cmCancel(); setPanel('notes', false); pinned = null;
+  try {
+    nav.mode = 'off';  // hundreds of checked screens stay out of the history
+    for (const v of VS) {
+      V = v;  // directly, not useVariant: the check doesn't touch the variant's "last screen"
+      /* variant static checks: data */
+      V.STEPS.forEach(st => { if (!V.VIEWS[st.id]) P(`missing VIEWS.${st.id}`, vat()); });
+      const ids = V.NOTES.map(n => n.id);
+      ids.forEach((id, i) => { if (ids.indexOf(id) !== i) P(`duplicate note id ${id}`, vat()); });
+      V.NOTES.forEach(n => { if (n.step && !stateOf(n.step, n.state || stepOf(n.step)?.states[0].id)) P(`note ${n.id}: no step/state ${n.step}/${n.state ?? ''}`, vat()); });
+      if (V.NOTES.length < 3 || V.NOTES.length > 7) W(`${V.NOTES.length} notes, expected 3–7`, vat());
+      V.LINKS.forEach((l, i) => [l.from, l.to].forEach(k => { const [a, b] = String(k ?? '').split('/'); if (!stateOf(a, b)) P(`LINKS[${i}]: no state "${k}" — expected 'step/state'`, vat()); }));
+      Object.entries(V.ACTIONS).forEach(([name, fn]) => gotoCalls(fn).forEach(([a, b]) => {
+        const st = LIT.exec(a)?.[2], ss = LIT.exec(b || '')?.[2];
+        if (st && !stepOf(st)) P(`ACTIONS['${name}']: goto to a nonexistent step "${st}"`, vat());
+        else if (st && ss && !stateOf(st, ss)) P(`ACTIONS['${name}']: goto to a nonexistent state "${st}/${ss}"`, vat());
+      }));
+
+      for (const dark of [false, true]) {
+        setTheme(dark);
+        combos.forEach((sw, ci) => V.STEPS.forEach(st => st.states.forEach(ss => {
+          const where = [multi() ? V.key : '', `${st.id}/${ss.id}`, ...Object.entries(sw).map(([k, x]) => `${k}=${x}`), dark ? 'dark' : ''].filter(Boolean).join(' ');
+          errs.length = 0;
+          try { openState(st.id, ss.id, sw); } catch (e) { P(`render error: ${e.message}`, where); return; }
+          checked++;
+          errs.forEach(m => P(`console.error: ${m}`, where));
+          const text = view.textContent;
+          if (!text.trim()) P('empty screen', where);
+          if (/lorem|ipsum|dolor sit|\bTODO\b|\bTBD\b/i.test(text)) P('placeholder text instead of realistic data', where);
+          if ($('#view .note, #view .notes')) P('notes inside the app — they belong in the panel on the right', where);
+          if (wide && document.documentElement.scrollWidth > document.documentElement.clientWidth + 1) P('horizontal page scroll', where);
+          if (app.scrollWidth > app.clientWidth + 1) P('content is wider than the browser frame and gets clipped', where);
+          $$('#view .k-topbar').forEach(el => { if (el.scrollWidth > el.clientWidth + 1) P("the screen's top bar (k-topbar) doesn't fit the width", where); });
+          $$('#view .marker').forEach(m => {
+            const id = Number(m.dataset.note); seen.add(`${V.id}|${id}`);
+            if (!V.NOTES.some(n => n.id === id)) P(`marker ${id} has no note in NOTES`, where);
+            if (!m.closest(`[data-anchor="note-${id}"]`)) P(`marker ${id} is not inside an element with data-anchor="note-${id}" (wrap it in <span class="k-anchor changed" data-anchor>)`, where);
+          });
+          $$('#view [data-anchor]').forEach(el => { if (!el.querySelector(`.marker[data-note="${el.dataset.anchor.replace('note-', '')}"]`)) W(`${el.dataset.anchor}: element has no marker inside`, where); });
+          $$('#view [data-act]').forEach(el => {
+            const act = el.dataset.act;
+            if (act === 'goto') { const [a, b] = (el.dataset.goto || '').split('/'); if (!stepOf(a) || (b && !stateOf(a, b))) P(`data-goto="${el.dataset.goto}" — no such step/state`, where); }
+            else if (act === 'menu') { if (!el.dataset.menu) P('data-act="menu" without data-menu', where); }
+            else if (act === 'set') { if (!el.dataset.field) P('data-act="set" without data-field', where); }
+            else if (act !== 'close' && !V.ACTIONS[act] && !/^(deck|note|toast):/.test(act)) P(`data-act="${act}" is not in ACTIONS`, where);
+          });
+          $$('#view [data-live]').forEach(el => { const a = el.dataset.live; if (a && !V.ACTIONS[a]) P(`data-live="${a}" is not in ACTIONS`, where); if (!el.dataset.model) P('data-live without data-model', where); });
+          $$('#view [style]').forEach(el => { if (`:${el.getAttribute('style')}`.match(COLOR)) P('hard-coded color in style="…" — use var(--kbq-*)', where); });
+          if (!dark) {
+            const html = view.innerHTML;
+            renders.push({ v: V.id, sw, step: st.id, state: ss.id, html });
+            if (ci === 0) { render(); if (view.innerHTML !== html) W('the screen changes on re-render — random data?', where); }
+          }
+        })));
+      }
+      /* states that change nothing */
+      const mine = renders.filter(r => r.v === V.id);
+      V.STEPS.forEach(st => st.states.forEach((a, i) => st.states.slice(i + 1).forEach(b => {
+        const same = mine.filter(r => r.step === st.id && r.state === a.id).every(r => mine.find(x => x.step === st.id && x.state === b.id && swKey(x.sw) === swKey(r.sw))?.html === r.html);
+        if (same) W(`"${st.title}": states "${a.title}" and "${b.title}" look the same`, vat());
+      })));
+      /* notes: shown, and found where step/state point */
+      setTheme(false);
+      V.NOTES.forEach(n => {
+        if (!seen.has(`${V.id}|${n.id}`)) return P(`note ${n.id} "${n.title}" is never shown by a marker`, vat());
+        if (!n.step || !stepOf(n.step)) return;
+        openState(n.step, n.state, V.S_INIT.sw);
+        if (!targetsOf(n.id).length) W(`note ${n.id}: no marker in ${n.step}/${n.state ?? ''} with the initial switches — clicking the note won't find it`, vat());
+      });
+      /* screen map: a step you can't get into or out of — a transition is missing (a button without goto) or the step is redundant */
+      if (V.STEPS.length > 1) {
+        resetS(V.S_INIT);
+        const linked = new Set();
+        mapNodes().forEach(x => x.exits.forEach(e => { const to = e.to.split('/')[0]; if (to !== x.step) linked.add(x.step).add(to); }));
+        V.STEPS.forEach(st => { if (!linked.has(st.id)) W(`screen map: step "${st.title}" has no transitions to other steps — add a button with goto() or an entry in LINKS`, vat()); });
+      }
+      if (multi()) { openState(V.S_INIT.step, V.S_INIT.state, VS[0].S_INIT.sw); starts.push({ v: V, html: view.innerHTML }); }
+    }
+    /* switches that change nothing in any variant */
+    SWITCHES.forEach(sw => {
+      const groups = new Map();
+      renders.forEach(r => { const k = `${r.v}|${r.step}/${r.state}|${swKey(r.sw, sw.id)}`; if (!groups.has(k)) groups.set(k, new Set()); groups.get(k).add(r.html); });
+      if ([...groups.values()].every(g => g.size < 2)) W(`switch "${sw.title}" changes nothing on the screens`);
+    });
+    /* variants must differ in screen structure, not just in copy */
+    const skeleton = (html) => html.replace(/>[^<]*</g, '><').replace(/\s(?:title|aria-label|placeholder|value|data-goto)="[^"]*"/g, '');
+    starts.forEach((a, i) => starts.slice(i + 1).forEach(b => {
+      if (skeleton(a.html) === skeleton(b.html)) W(`variants ${a.v.key} and ${b.v.key}: the start screens have the same structure (only the copy differs) — variants must differ in structure`);
+    }));
+  } finally {
+    console.error = origErr;
+    V = keep.V; resetS(keep.S); setTheme(keep.dark);
+    body.classList.toggle('map-on', keep.map); setPanel(keep.panel, false);
+    pinned = keep.pinned; nav.mode = 'push'; render();
+  }
+  const list = (map) => [...map].map(([m, w]) => w.length ? `${m} — ${w[0]}${w.length > 1 ? ` (+${w.length - 1})` : ''}` : m);
+  const res = { ok: !problems.size, checked, problems: list(problems), warnings: list(warnings) };
+  console[res.ok ? 'log' : 'warn'](`protoCheck: ${res.ok ? 'OK' : 'problems found'}, screens: ${checked}`, res);
+  return res;
+}
+
+window.addEventListener('popstate', (e) => {
+  const h = readHash(), saved = e.state?.S, sv = e.state?.v != null ? variantOf(e.state.v) : h?.v;
+  navAs('replace', () => {
+    if (saved && sv && stateOf(saved.step, saved.state, sv)) { nav.i = e.state.i; useVariant(sv); resetS({ ...V.S_INIT, ...saved, menu: null }); render(); }
+    else if (h) { nav.top = ++nav.i; useVariant(h.v); openState(h.step, h.state, h.sw); }  // the hash was typed by hand — the browser already added an entry
+  });
+});
+window.addEventListener('resize', () => { if (mapOn()) drawEdges(); cmMove(); });
+$('#map').addEventListener('mouseover', mapHover);
+{
+  const map = $('#map');
+  map.addEventListener('pointerdown', (e) => {
+    mapNoClick = false;
+    if (e.button !== 0 || e.target.closest('.map__zoom')) return;
+    mapPan = { x: e.clientX, y: e.clientY, mx: MAPV.x, my: MAPV.y, moved: false };
+  });
+  addEventListener('pointermove', (e) => {
+    if (!mapPan) return;
+    const dx = e.clientX - mapPan.x, dy = e.clientY - mapPan.y;
+    if (!mapPan.moved && Math.hypot(dx, dy) < 4) return;  // less than that is a click
+    if (!mapPan.moved) { mapPan.moved = true; map.classList.add('is-panning'); }
+    MAPV.x = mapPan.mx + dx; MAPV.y = mapPan.my + dy; mapApply();
+  });
+  const endPan = () => { if (mapPan?.moved) { mapNoClick = true; map.classList.remove('is-panning'); } mapPan = null; };
+  addEventListener('pointerup', endPan); addEventListener('pointercancel', endPan);
+  map.addEventListener('click', (e) => { if (mapNoClick) { mapNoClick = false; e.stopPropagation(); e.preventDefault(); } }, true);  // a release after a drag is not a click
+  map.addEventListener('dragstart', (e) => e.preventDefault());
+  map.addEventListener('wheel', (e) => {
+    if (!mapOn() || e.target.closest('.map__zoom')) return;
+    e.preventDefault();
+    const k = e.deltaMode === 1 ? 16 : 1, b = map.getBoundingClientRect();
+    if (e.ctrlKey || e.metaKey) mapZoom(MAPV.z * Math.exp(-e.deltaY * k * 0.01), e.clientX - b.left, e.clientY - b.top);
+    else { MAPV.x -= e.deltaX * k; MAPV.y -= e.deltaY * k; mapApply(); }
+  }, { passive: false });
+}
+$('#map').addEventListener('mouseleave', mapHover);
+
+(function init() {
+  document.documentElement.lang = LANG;
+  $$('[data-i18n]').forEach(el => el.insertAdjacentHTML('beforeend', tr(el.dataset.i18n)));
+  $$('[data-i18n-title]').forEach(el => { el.title = tr(el.dataset.i18nTitle); });
+  const panel = load('proto.panel'); if (panel) setPanel(PANELS.includes(panel) ? panel : null, false);
+  if (load('proto.theme') === 'dark') $('#app').classList.replace('kbq-light', 'kbq-dark');
+  nav.i = history.state?.i ?? 0;
+  nav.top = Math.max(nav.i, history.state ? +(() => { try { return sessionStorage.getItem(NAV_KEY); } catch (e) {} })() || 0 : 0);
+  const h = readHash(); if (h) V = h.v;
+  navAs('replace', () => openState(h?.step ?? V.S_INIT.step, h?.state ?? V.S_INIT.state, h?.sw));
+})();
+</script>
+</body>
+</html>
