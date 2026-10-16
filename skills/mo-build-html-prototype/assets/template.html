@@ -81,7 +81,7 @@ button{font:inherit;color:inherit}
 .browser__url{flex:1;display:flex;align-items:center;height:26px;margin-left:8px;padding:0 10px;border-radius:6px;background:var(--br-url);box-shadow:inset 0 0 0 1px var(--br-url-ring);font:12px/16px 'JetBrains Mono',Menlo,Consolas,monospace;color:var(--br-url-fg);white-space:nowrap;overflow:hidden}
 .browser__body{overflow:auto}
 .app{position:relative;min-width:960px;height:max(700px,calc(100vh - var(--deck-h) - var(--bar-h) - 48px));overflow:hidden;display:flex;flex-direction:column}
-.app-view{flex:1;min-height:0;display:flex;flex-direction:column}
+.app-view{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden auto}  /* a screen taller than the frame scrolls inside it, like a page in a browser; the .app-body + .app-content shell still scrolls .app-content */
 /* notes panel — always OUTSIDE .app */
 .notes{width:var(--notes-w);flex:none;position:sticky;top:calc(var(--deck-h) + 16px);max-height:calc(100vh - var(--deck-h) - 32px);overflow:auto;display:flex;flex-direction:column;gap:8px}
 body:not(.notes-on) .notes{display:none}
@@ -1018,6 +1018,7 @@ const whereOf = (step, state, v = V) => `${stepOf(step, v)?.title ?? step}${stat
 const varName = (v = V) => `${v.key}${v.title ? ' · ' + v.title : ''}`;
 const TOAST_ICONS = { success: 'check-circle', error: 'alert-circle', warning: 'alert-triangle', theme: 'info', contrast: 'info' };
 let pinned = null;
+let shownStep = null;  // frame scroll: a new step starts at the top, like a new page; a new state or variant on the same step keeps it
 
 function goto(step, state, patch) {
   const st = stepOf(step) || V.STEPS[0];
@@ -1062,6 +1063,7 @@ function render() {
   view.innerHTML = fn(S);
   $$('.k-overlay', view).at(-1)?.classList.add('is-top');  // the top overlay is the last one in the DOM; markers and highlighting only in it
   $$('[data-scroll]', view).forEach(el => { if (el.dataset.scroll in scrolls) el.scrollTop = scrolls[el.dataset.scroll]; });
+  if (S.step !== shownStep) { view.scrollTop = 0; shownStep = S.step; }
   /* focus: stays in the data-model field across re-renders; S.focus = 'field' — focus it once (for example, a field with an error) */
   const want = S.focus || model; S.focus = null;
   const field = want && $(`[data-model="${CSS.escape(want)}"]`, view);
@@ -1852,7 +1854,7 @@ function protoCheck() {
           if (/lorem|ipsum|dolor sit|\bTODO\b|\bTBD\b/i.test(text)) P('placeholder text instead of realistic data', where);
           if ($('#view .note, #view .notes')) P('notes inside the app — they belong in the panel on the right', where);
           if (wide && document.documentElement.scrollWidth > document.documentElement.clientWidth + 1) P('horizontal page scroll', where);
-          if (app.scrollWidth > app.clientWidth + 1) P('content is wider than the browser frame and gets clipped', where);
+          if ([app, view].some(el => el.scrollWidth > el.clientWidth + 1)) P('content is wider than the browser frame and gets clipped', where);
           $$('#view .k-topbar').forEach(el => { if (el.scrollWidth > el.clientWidth + 1) P("the screen's top bar (k-topbar) doesn't fit the width", where); });
           $$('#view .marker').forEach(m => {
             const id = Number(m.dataset.note); seen.add(`${V.id}|${id}`);
